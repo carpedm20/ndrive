@@ -1,8 +1,8 @@
 """
-pyndrive
+ndrive
 ======
 
-pyndrive is a Naver Ndrive wrapper for python
+ndrive is a Naver Ndrive wrapper for python
 
 Getting started
 ---------------
