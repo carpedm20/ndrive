@@ -20,6 +20,8 @@ import mechanize
 import urllib2
 import requests
 import json
+import magic
+import datetime
 from login import naverLogin
 
 class ndrive:
@@ -35,7 +37,7 @@ class ndrive:
         Returns:
 
         """
-        self.NID_AUTH = NID_AUT
+        self.NID_AUT = NID_AUT
         self.NID_SES = NID_SES
         self.useridx = None
 
@@ -298,6 +300,7 @@ class ndrive:
         f = open(fileName, "r")
         c = f.read()
 
-        r = requests.put(self.urls['put'], data = c, cookies = self.cookies)
+        headers = {'userid': self.userId, 'charset': 'UTF-8', 'useridx': self.useridx, 'Origin': 'http://ndrive2.naver.com','MODIFYDATE': datetime.datetime.now().isoformat(), 'Content-Type': magic.from_file(fileName, mime=True)}
+        r = requests.put(self.urls['put'] + '/' + fileName, data = c, cookies = self.cookies, headers = headers)
 
         print r.text
