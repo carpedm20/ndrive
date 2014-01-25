@@ -290,3 +290,14 @@ class ndrive:
             return True
         else:
             return False
+
+    def put(self, fileName):
+        """PUT
+
+        """
+        f = open(fileName, "r")
+        c = f.read()
+
+        r = requests.put(self.urls['put'], data = c, cookies = self.cookies)
+
+        print r.text
