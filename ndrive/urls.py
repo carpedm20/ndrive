@@ -204,7 +204,40 @@ Returns:
         "resultcode":0,
         "message":"success"
     }
-
-
 """
 ndrive_urls['doMove'] = base_url + "/DoMove.ndrive"
+
+"""POST /DoCopy.ndrive
+
+Params:
+    userid=carpedm20
+    useridx=6794877
+    dummy=38404
+    orgresource=%2Fsolar2.png
+    dstresource=%2FUNIST%2F
+    overwrite=F
+    bShareFireCopy=false
+
+Returns:
+    {
+        "resultcode":0,
+        "message":"success"
+    }
+"""
+ndrive_urls['doCopy'] = base_url + "/DoCopy.ndrive"
+
+"""POST /GetProperty.ndrive
+
+Params:
+    userid=carpedm20
+    useridx=6794877
+    dummy=38404
+    orgresource=%2Fsolar2.png
+
+Returns:
+    {
+        "resultcode":0,
+        "message":"success"
+    }
+"""
+ndrive_urls['getProperty'] = base_url + "/GetProperty.ndrive"

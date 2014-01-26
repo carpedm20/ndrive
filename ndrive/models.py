@@ -126,6 +126,78 @@ class FileInfo(object):
     def setJson(self, j):
         self.json = j
 
+class FileProperty(object):
+    #: File href
+    #: ex) /Photo/FILE_NAME
+    href = None
+
+    #: Resource type
+    #: ex) property
+    resourcetype = None
+
+    #: Resource Number
+    resourceno = None
+
+    #: Creation date
+    #: ex) 2014-01-25T18:59:59+09:00
+    creationdate = None
+
+    #: Last accessed date
+    #: ex) 2014-01-25T18:59:59+09:00
+    lastaccessed = None
+
+    #: Last modified date
+    #: ex) 2014-01-25T18:59:59+09:00
+    getlastmodified = None
+
+    #: Byte sized content length
+    getcontentlength = None
+
+    #: Protected or not
+    protect = None
+
+    #: Total file count
+    #: Integer number
+    totalfilecnt = None
+
+    #: Total folder count
+    #: Integer number
+    totalfoldercnt = None
+
+    #: File type
+    #: 1: 
+    #: 2: jpg
+    #: 
+    filetype = None
+
+    #: Exif
+    #: Y:
+    #: N:
+    exif = None
+
+    #: Has thumbnail
+    #: Y:
+    #: N:
+    thumbnail = None
+
+    #: File upload status
+    #: 1: default
+    fileuploadstatus = None
+
+    #: Virus status
+    #: Y:
+    #: N:
+    virusstatus = None
+
+    #: File link
+    #: Y:
+    #: N: Has no file link
+    filelink = None
+
+    #: File link ulr
+    #: null:
+    filelinkurl = None
+
 """
     resultcode & message:
         0 = success
@@ -509,3 +581,80 @@ class ndrive:
                 files.append(f)
 
             return files
+
+    def doMove(self, dummy = 56184, orgresource, dstresource, dstresource = 'F', bShareFireCopy = 'false'):
+        """DoMove
+
+        Args:
+            dummy: ???
+            orgresource: Path for a file which you want to move
+            dstresource: Destination path
+            bShareFireCopy: ???
+
+        Returns:
+            True: Move success
+            False: Move failed
+            
+        """
+
+        url = nurls['doMove']
+        
+        data = {'userid': self.user_id,
+                'useridx': self.useridx,
+                'dummy': dummy,
+                'orgresource': orgresource,
+                'dstresource': dstresource,
+                'overwrite': overwrite
+                'bShareFireCopy': bShareFireCopy,
+                }
+
+        r = self.session.post(url = url, data = data)
+
+        try:
+            j = json.loads(r.text)
+        except:
+            #print '[*] Success checkUpload: 0 result'
+
+            return False
+
+        if j['message'] is 'success':
+            return True
+        else
+            print '[*] Error doMove: ' + j['message']
+            return False
+
+    def getProperty(self, dummy = 56184, orgresource):
+        """GetProperty
+
+        Args:
+            dummy: ???
+            orgresource: File path
+
+        Returns:
+            JSON_FILE: Property of file
+            False: Failed to get property
+
+        """
+
+        url = nurls['getProperty']
+
+        data = {'userid': self.user_id,
+                'useridx': self.useridx,
+                'dummy': dummy,
+                'orgresource': orgresource,
+                }
+
+        r = self.session.post(url = url, data = data)
+
+        try:
+            j = json.loads(r.text)
+        except:
+            #print '[*] Success checkUpload: 0 result'
+
+            return False
+
+        if j['message'] is 'success':
+            return True
+        else
+            print '[*] Error doMove: ' + j['message']
+            return False
