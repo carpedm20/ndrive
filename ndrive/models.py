@@ -15,7 +15,7 @@ Getting started
 Copyright
 ---------
 
-ndrive is following an MIT License.
+Copyright 2014 Kim Tae Hoon
 
 """
 

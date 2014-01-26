@@ -1,8 +1,15 @@
 """
-ndrive.models
-=============
+ndrive
+======
 
-Thjis module contains the primary urls for ndrive
+ndrive is a Naver Ndrive wrapper for python
+
+
+Copyright
+---------
+
+Copyright 2014 Kim Tae Hoon
+
 """
 
 ndrive_urls = {}
