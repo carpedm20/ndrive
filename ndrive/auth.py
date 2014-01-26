@@ -5,6 +5,7 @@ spidermokey is used to log in Naver by using JavaScript.
 
 """
 
+import os
 import requests
 import urllib, base64, rsa, httplib, re
 import spidermonkey
@@ -16,7 +17,8 @@ def naver_login(id, password):
     f.close()
 
     # login JavaScript from 'https://nid.naver.com/login/js/login.long.js'
-    f = file('./login.long.js', 'r')
+    js_path = os.path.join(os.path.dirname(__file__), 'login.long.js')
+    f = file(js_path, 'r')
     js = f.read()
     f.close()
 
