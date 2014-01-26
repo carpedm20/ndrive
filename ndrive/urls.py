@@ -95,7 +95,19 @@ Params:
 Returns:
     {
     ."resultcode":0,
-    ."message":"success"
+    ."message":"success",
+    ."resultvalue":{
+    .."totalspace":32212254720,
+    .."usedspace":31821325853,
+    .."unusedspace":390928867,
+    .."paymentspace":0,
+    .."expandablespace":354334801920,
+    .."largefileusedspace":14842667181,
+    .."largefileunusedspace":17369587539,
+    .."totallargespace":32212254720,
+    .."largefileminsize":52428800,
+    .."filemaxsize":4294967296
+    .}
     }
 """
 
@@ -176,3 +188,23 @@ Returns:
 """
 ndrive_urls['getWasteInfo'] = base_url + "/GetWasteInfo.ndrive"
 
+"""POST /DoMove.ndrive 
+
+Params:
+    userid=carpedm20
+    useridx=6794877
+    dummy=38404
+    orgresource=%2Fsolar2.png
+    dstresource=%2FUNIST%2F
+    overwrite=F
+    bShareFireCopy=false
+
+Returns:
+    {
+        "resultcode":0,
+        "message":"success"
+    }
+
+
+"""
+ndrive_urls['doMove'] = base_url + "/DoMove.ndrive"
