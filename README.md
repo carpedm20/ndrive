@@ -21,9 +21,7 @@ To-do
 -----
 
 1. Implement all APIs
-
 2. command-line tool
-
 3. ???
 
 
