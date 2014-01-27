@@ -1,3 +1,8 @@
-*.pyc
-*.swp
-*.swo
+*.py[oc]
+
+# Vim
+.*.sw[op]
+
+# Sphinx
+docs/Makefile
+docs/_build
