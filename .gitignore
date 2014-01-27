@@ -1,4 +1,5 @@
 *.py[oc]
+backup.*
 
 # Vim
 .*.sw[op]

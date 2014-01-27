@@ -10,5 +10,7 @@ __license__ = 'MIT License'
 __copyright__ = 'Copyright 2014 Kim Tae Hoon'
 
 from .auth import naver_login
-from .models import ndrive
+from .client import ndrive
 from .urls import ndrive_urls
+from .file import FileInf
+
