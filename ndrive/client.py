@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -19,15 +18,17 @@ Copyright 2014 Kim Tae Hoon
 
 """
 
-import os
+import os, sys
 import urllib2
 import requests
 import json
 import magic
 import datetime
+import re
 
 from .auth import naver_login
-from .urls import ndrive_urls as NdriveUrls
+from .urls import ndrive_urls as nurls
+from .utils import byte_readable
 
 class ndrive(object):
     """
@@ -35,12 +36,13 @@ class ndrive(object):
     log in with Ndrive account or set NID_AUT and NID_SES manually.
 
     """
+    debug = False
 
     # requests session
     # Cookies : NID_AUT, NID_SES, useridx
     session = requests.session()
 
-    def __init__(self, NID_AUT = None, NID_SES= None):
+    def __init__(self, debug = False, NID_AUT = None, NID_SES= None):
         """Initialize ``NdriveClient`` instance.
 
         Using given user information, login to ndrive server and create a session
@@ -52,6 +54,7 @@ class ndrive(object):
         Returns:
 
         """
+        self.debug = debug
         self.session.headers["User-Agent"] = \
             "Mozilla/5.0 (Windows NT 6.2; WOW64) Chrome/32.0.1700.76 Safari/537.36"
         self.session.cookies.set('NID_AUT', NID_AUT)
@@ -100,7 +103,7 @@ class ndrive(object):
         elif self.user_id is None:
             return False, "Error checkStatus: userId is not defined"
         else:
-            return True
+            return True, None
 
     def GET(self, func, data):
         """GET http request to execute Ndrive API
@@ -117,21 +120,33 @@ class ndrive(object):
             False:
               Failed to execute Ndrive API function.
         """
-        s, message = checkAccount()
-        if s is False:
-            return False, message
+        if func not in ['getRegisterUserInfo']:
+            s, message = self.checkAccount()
 
-        url = NdriveUrls[func]
+            if s is False:
+                return False, message
+
+        url = nurls[func]
         r = self.session.get(url, params = data)
 
+        if self.debug:
+            print r.text
+
         try:
-            metadata = json.loads(r.text)
+            try:
+                metadata = json.loads(r.text)
+            except:
+                metadata = json.loads(r.text[r.text.find('{'):-1])
+
             message = metadata['message']
             if message == 'success':
                 return True, metadata['resultvalue']
             else:
                 return False, message
         except:
+            for e in sys.exc_info():
+                print e
+            sys.exit(1)
             return False, "Error %s: Failed to send GET request" %func
 
     def POST(self, func, data):
@@ -149,22 +164,31 @@ class ndrive(object):
             False:
               Failed to execute Ndrive API function.
         """
-        s, message = checkAccount()
+        s, message = self.checkAccount()
         if s is False:
             return False, message
 
-        url = NdriveUrls[func]
+        url = nurls[func]
         r = self.session.post(url, data = data)
+
+        if self.debug:
+            print r.text.decode("unicode-escape").encode("utf-8")
 
         try:
             metadata = json.loads(r.text)
             message = metadata['message']
             if message == 'success':
-                return True, metadata['resultvalue']
+                try:
+                    return True, metadata['resultvalue']
+                except:
+                    return True, metadata['resultcode']
             else:
                 return False, "Error %s: %s" %(func, message)
         except:
-            return False, "Error %s: Failed to send GET request" %func
+            #for e in sys.exc_info():
+            #    print e
+            #sys.exit(1)
+            return False, "Error %s: Failed to send POST request" %func
 
     def getRegisterUserInfo(self, svctype = "Android NDrive App ver", auth = 0):
         """Retrieve information about useridx
@@ -191,8 +215,10 @@ class ndrive(object):
 
         if s is True:
             self.useridx = metadata['useridx']
+            return True
         else:
-            print message
+            print metadata
+            return False
             
     def checkStatus(self):
         """Check status
@@ -206,7 +232,7 @@ class ndrive(object):
               Failed
 
         """
-        checkAccount()
+        self.checkAccount()
 
         data = {'userid': self.user_id,
                 'useridx': self.useridx
@@ -221,8 +247,19 @@ class ndrive(object):
         else:
             return False
 
-    def uploadFile(self, file_path, upload_path = '', overwrite = False):
+    def uploadFile(self, file_obj, full_path, overwrite = False):
         """Upload a file as Ndrive really do.
+
+        Args:
+            file_obj
+              A file-like object to check whether possible to upload.
+              You can pass a string as a file_obj or a real file object.
+            full_path:
+              The full path to upload the file to, *including the file name*.
+              If the destination directory does not yet exist, it will be created.
+                ex) /Picture/flower.png
+            overwrite:
+              Whether to overwrite an existing file at the given path. (Default ``False``.)
 
         Remarks:
             How Ndrive uploads a file to its server:
@@ -236,18 +273,28 @@ class ndrive(object):
         """
         s = self.checkStatus()
         s = self.getDiskSpace()
-        s = self.checkUpload(file_path, upload_path, overwrite)
+        s = self.checkUpload(file_obj, full_path, overwrite)
 
         if s is True:
-            self.put(file_path, upload_path)
+            self.put(file_obj, full_path, overwrite)
 
     def getDiskSpace(self):
         """Get disk space information.
 
         Returns:
             metadata:
-              Disk information in JSON format
+              Disk information in DICT format
 
+              - expandablespace
+              - filemaxsize
+              - largefileminsize
+              - largefileunusedspace
+              - largefileusedspace
+              - paymentspace
+              - totallargespace
+              - totalspace
+              - unusedspace
+              - usedspace
         """
         data = {'userid': self.user_id,
                 'useridx': self.useridx,
@@ -255,11 +302,15 @@ class ndrive(object):
         s, metadata = self.POST('getDiskSpace',data)
 
         if s is True:
+            usedspace = byte_readable(metadata['usedspace'])
+            totalspace = byte_readable(metadata['totalspace'])
+            print "Capacity: %s / %s" % (usedspace, totalspace)
+
             return metadata
         else:
             print message
 
-    def checkUpload(self, file_obj, full_path, overwrite = False):
+    def checkUpload(self, file_obj, full_path = '/', overwrite = False):
         """Check whether it is possible to upload a file.
 
         Args:
@@ -270,6 +321,8 @@ class ndrive(object):
               The full path to upload the file to, *including the file name*.
               If the destination directory does not yet exist, it will be created.
                 ex) /Picture/flower.png
+            overwrite:
+              Whether to overwrite an existing file at the given path. (Default ``False``.)
             
         Returns:
             True:
@@ -279,7 +332,7 @@ class ndrive(object):
 
         """
         try:
-            file_obj = f.name
+            file_obj = file_obj.name
         except:
             file_obj = file_obj # do nothing
 
@@ -294,11 +347,14 @@ class ndrive(object):
                 'useridx': self.useridx,
                 }
 
-        s, metadata = self.POST('ehckUpload', data)
+        s, metadata = self.POST('checkUpload', data)
+
+        if not s:
+            print metadata
 
         return s
 
-    def put_file(self, file_obj, full_path):
+    def put(self, file_obj, full_path, overwrite = False):
         """Upload a file.
 
         Args:
@@ -321,18 +377,26 @@ class ndrive(object):
         except:
             file_obj = file_obj # do nothing
 
-        content = f.read()
-        file_name = os.path.basename(file_path)
+        content = file_obj.read()
+        file_name = os.path.basename(full_path)
 
         now = datetime.datetime.now().isoformat()
-        url = nurls['put'] + upload_path + file_name
+        url = nurls['put'] + full_path
+
+        if overwrite:
+            overwrite = 'T'
+        else:
+            overwrite = 'F'
 
         headers = {'userid': self.user_id,
                    'useridx': self.useridx,
                    'MODIFYDATE': now,
-                   'Content-Type': magic.from_file(file_path, mime=True),
+                   'Content-Type': magic.from_file(file_obj.name, mime=True),
                    'charset': 'UTF-8',
                    'Origin': 'http://ndrive2.naver.com',
+                   'OVERWRITE': overwrite,
+                   'X-Requested-With': 'XMLHttpRequest',
+                   'NDriveSvcType': 'NHN/DRAGDROP Ver',
         }
         r = self.session.put(url = url, data = content, headers = headers)
         message = json.loads(r.text)['message']
@@ -341,6 +405,7 @@ class ndrive(object):
             print "Error put: " + message
             return False
         else:
+            print "Success put: " + file_obj.name
             return True
 
     def delete(self, full_path):
@@ -358,7 +423,7 @@ class ndrive(object):
               Failed to delete the file
         """
         now = datetime.datetime.now().isoformat()
-        url = nurls['put'] + upload_path + file_name
+        url = nurls['delete'] + full_path
 
         headers = {'userid': self.user_id,
                    'useridx': self.useridx,
@@ -366,7 +431,12 @@ class ndrive(object):
                    'charset': 'UTF-8',
                    'Origin': 'http://ndrive2.naver.com',
         }
-        r = self.session.delete(url = url, headers = headers)
+        try:
+            r = self.session.delete(url = url, headers = headers)
+        except:
+            print "Error delete: wrong full_path"
+            return False
+
         message = json.loads(r.text)['message']
 
         if message != 'success':
@@ -404,24 +474,48 @@ class ndrive(object):
             dummy: ???
 
         Returns:
-            JSON string:
-              List of files for a path in JSON form.
+            List of dict:
+              List of files for a path in Dict form.
+                ex)
+                  [
+                    {
+                      u'copyright': u'N',
+                      u'creationdate': u'2013-05-12T21:17:23+09:00',
+                      u'filelink': None,
+                      u'fileuploadstatus': u'1',
+                      u'getcontentlength': 0,
+                      u'getlastmodified': u'2014-01-26T12:23:07+09:00',
+                      u'href': u'/Codes/',
+                      u'lastaccessed': u'2013-05-12T21:17:23+09:00',
+                      u'lastmodifieduser': None,
+                      u'priority': u'1',
+                      u'protect': u'N',
+                      u'resourceno': 204041859,
+                      u'resourcetype': u'collection',
+                      u'sharedinfo': u'F',
+                      u'sharemsgcnt': 0,
+                      u'shareno': 0,
+                      u'subfoldercnt': 5,
+                      u'thumbnailpath': u'N',
+                      u'virusstatus': u'N'
+                    }
+                  ]
             False:
               Failed to get list.
         """
-        data = {'userid': self.user_id,
-                'useridx': self.useridx,
-                'dummy': dummy,
-                'orgresource': orgresource,
+        data = {'orgresource': full_path,
                 'type': type,
                 'dept': dept,
                 'sort': sort,
                 'order': order,
                 'startnum': startnum,
                 'pagingrow': pagingrow,
-                }
+                'userid': self.user_id,
+                'useridx': self.useridx,
+                'dummy': dummy,
+               }
 
-        s, metadata = self.POST('getResult', data)
+        s, metadata = self.POST('getList', data)
 
         if s is True:
             return metadata
@@ -429,7 +523,7 @@ class ndrive(object):
             print metadata
             return False
 
-    def doMove(self, from_path, to_path, stresource = 'F', bShareFireCopy = 'false', dummy = 56147):
+    def doMove(self, from_path, to_path, overwrite = False, bShareFireCopy = 'false', dummy = 56147):
         """Move a file.
 
         Args:
@@ -439,9 +533,8 @@ class ndrive(object):
               The destination path of the file or folder to be copied.
               File name should be included in the end of to_path.
                 ex) /Picture/flower.png
-                
-            stresource:
-              ???
+            overwrite:
+              Whether to overwrite an existing file at the given path. (Default ``False``.)
             bShareFireCopy:
               ???
             dummy:
@@ -453,7 +546,12 @@ class ndrive(object):
             False:
               Failed to move a file.
         """
-        data = {'orgresource': full_path,
+        if overwrite:
+            overwrite = 'F'
+        else:
+            overwrite = 'T'
+
+        data = {'orgresource': from_path,
                 'dstresource': to_path,
                 'overwrite': overwrite,
                 'bShareFireCopy': bShareFireCopy,
@@ -466,6 +564,96 @@ class ndrive(object):
 
         return s
 
+    def makeDirectory(self, full_path, dummy = 40841):
+        """Make a directory
+        
+        Args:
+            full_path:
+              The full path to get the directory property.
+              Should be end with '/'.
+                ex) /folder/
+
+        Returns:
+            True:
+              Success to make a directory.
+            False:
+              Failed to make a directory.
+        """
+        if full_path[-1] is not '/':
+            full_path += '/'
+
+        data = {'dstresource': full_path,
+                'userid': self.user_id,
+                'useridx': self.useridx,
+                'dummy': dummy,
+                }
+
+        s, metadata = self.POST('makeDirectory', data)
+
+        return s
+
+    def makeShareUrl(self, full_path, passwd):
+        """Make a share url of directory
+
+        Args:
+            full_path:
+              The full path to get the directory property.
+              Should be end with '/'.
+                ex) /folder/
+            passwd:
+              Access password for shared directory
+        Returns:
+            URL:
+              share url for a directory
+            False:
+              Failed to share a directory
+        """
+        if full_path[-1] is not '/':
+            full_path += '/'
+
+        data = {'_callback': 'window.__jindo_callback._347',
+                'path': full_path,
+                'passwd': passwd,
+                'userid': self.user_id,
+                'useridx': self.useridx,
+                }
+
+        s, metadata = self.GET('shareUrl', data)
+
+        if s:
+            print "URL: %s" % (metadata['href'])
+            return metadata['href']
+        else:
+            print "Error makeShareUrl: %s" % (metadata)
+            return False
+
+    def createFileLink(self, resourceno):
+        """Make a file link
+
+        Args:
+            resourceno:
+              Resource number of a file to create link
+        Returns:
+            URL:
+              share url for a directory
+            False:
+              Failed to share a directory
+        """
+        data = {'_callback': 'window.__jindo_callback._8920',
+                'resourceno': resourceno,
+                'userid': self.user_id,
+                'useridx': self.useridx,
+                }
+
+        s, metadata = self.GET('createFileLink', data)
+
+        if s:
+            print "URL: %s" % (metadata['short_url'])
+            return metadata['short_url']
+        else:
+            print "Error createFileLink: %s" % (metadata)
+            return False
+
     def getProperty(self, full_path, dummy = 56184):
         """Get a file property
 
@@ -477,12 +665,31 @@ class ndrive(object):
               ???
 
         Returns:
-            JSON string:
+            Dict object:
               Property information of a file.
+
+              - creationdate
+              - exif
+              - filelink
+              - filelinkurl
+              - filetype
+              - fileuploadstatus
+              - getcontentlength
+              - getlastmodified
+              - href
+              - lastaccessed
+              - protect
+              - resourceno
+              - resourcetype
+              - thumbnail
+              - totalfilecnt
+              - totalfoldercnt
+              - virusstatus
+
             False:
               Failed to get property of a file.
         """
-        data = {'full_path': orgresource,
+        data = {'orgresource': full_path,
                 'userid': self.user_id,
                 'useridx': self.useridx,
                 'dummy': dummy,
@@ -495,7 +702,7 @@ class ndrive(object):
         else:
             return False
 
-    def getVersionList(self, full_path, startnum = 0, pagingrow = 50):
+    def getVersionList(self, full_path, startnum = 0, pagingrow = 50, dummy = 54213):
         """Get a version list of a file or dierectory.
 
         Args:
@@ -506,10 +713,19 @@ class ndrive(object):
             pagingrow: Max # of version list.
 
         Returns:
-            JSON string:
-              Version list of a file or directory in JSON format.
+            List of dict:
+              Version list of a file or directory in Dict format.
+
+              - createuser
+              - filesize
+              - getlastmodified
+              - href
+              - versioninfo
+              - versionkey
+
             False:
               Failed to get property.
+              If there is no history, also return False.
         """
         data = {'orgresource': full_path,
                 'startnum': startnum,
@@ -524,9 +740,10 @@ class ndrive(object):
         if s is True:
             return metadata
         else:
+            print "Error getVersionList: Cannot get version list"
             return False
 
-    def getVersionListCount(self, full_path):
+    def getVersionListCount(self, full_path, dummy = 51234):
         """Get a count of version list.
 
         Args:
@@ -536,7 +753,7 @@ class ndrive(object):
 
         Returns:
             Integer:
-              Count of a version list.
+              Number of a version list.
             False:
               Failed to get count of a version list.
 
@@ -546,10 +763,10 @@ class ndrive(object):
                 'useridx': self.useridx,
                 'dummy': dummy,
                 }
-        s, metadata = self.POST('getVersionList', data)
+        s, metadata = self.POST('getVersionListCount', data)
 
         if s is True:
-            return int(metadata['count'])
+            return metadata['count']
         else:
             return False
 
@@ -567,10 +784,10 @@ class ndrive(object):
             True: Success to set property.
             False: Failed to set property.
         """
-        data = {'userid': self.user_id,
-                'useridx': self.useridx,
-                'orgresource': orgresource,
+        data = {'orgresource': full_path,
                 'protect': protect,
+                'userid': self.user_id,
+                'useridx': self.useridx,
                 'dummy': dummy,
                 }
         s, metadata = self.POST('setProperty', data)
@@ -580,7 +797,7 @@ class ndrive(object):
         else:
             return False
 
-    def getMusicAlbumList(self, tagtype = 0, startnum = 0, pagingrow = 100):
+    def getMusicAlbumList(self, tagtype = 0, startnum = 0, pagingrow = 100, dummy = 51467):
         """Get music album list.
 
         Args:
@@ -592,6 +809,19 @@ class ndrive(object):
         Returns:
             Json string:
               Music album list as JSON format.
+                ex)
+                  [
+                    {
+                      u'album':u'Greatest Hits Coldplay',
+                      u'artist':u'Coldplay',
+                      u'href':u'/Coldplay - Clocks.mp3',
+                      u'musiccount':1,
+                      u'resourceno':12459548378,
+                      u'tagtype':1,
+                      u'thumbnailpath':u'N',
+                      u'totalpath':u'/'
+                    }
+                  ]
             False:
               Failed to get music album list.
         """
@@ -600,8 +830,9 @@ class ndrive(object):
                 'pagingrow': pagingrow,
                 'userid': self.user_id,
                 'useridx': self.useridx,
+                'dummy': dummy,
                 }
-        s, metadata = self.POST('setProperty', data)
+        s, metadata = self.POST('getMusicAlbumList', data)
 
         if s is True:
             return metadata

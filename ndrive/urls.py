@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 ndrive
 ======
@@ -14,6 +16,7 @@ Copyright 2014 Kim Tae Hoon
 
 ndrive_urls = {}
 base_url = "http://ndrive2.naver.com"
+api_url = "http://ndrive.naver.com"
 
 """GET /GetRegisterUserInfo.ndrive
 
@@ -121,6 +124,17 @@ Returns:
 ndrive_urls['checkUpload'] = base_url + "/CheckUpload.ndrive"
 
 """PUT /fileName
+
+Headers:
+    userid: carpedm20
+    useridx: 6794877
+    MODIFYDATE: 2014-02-18T15:42:31+09:00
+    Content-Type: application/octet-stream
+    charset: UTF-8
+    Origin: http://ndrive2.naver.com
+    OVERWRITE: T
+    X-Requested-With: XMLHttpRequest
+    NDriveSvcType: NHN/DRAGDROP Ver
 
 Params:
     rawFile
@@ -252,7 +266,16 @@ Returns:
 """
 ndrive_urls['getWasteList'] = base_url + "/GetWasteList.ndrive"
 
-"""DELETE /PHYSHREF
+"""DELETE /PATH
+
+    ex) /Photo/solar.png
+
+Move a file to waste
+
+"""
+ndrive_urls['delete'] = base_url
+
+"""DELETE /PATH
 
     ex) /.recycled/solar.png_-427837829
     ex) / => Empty waste
@@ -474,7 +497,7 @@ Returns:
         ]
     }
 """
-naver_urls['doSearch'] = base_url + "/DoSearch.ndrive"
+ndrive_urls['doSearch'] = base_url + "/DoSearch.ndrive"
 
 """POST /DoSearchCount.ndrive
 
@@ -500,4 +523,71 @@ Return:
         }
     }
 """
-naver_urls['doSearchCount'] = base_url + "/DoSearchCount.ndrive"
+ndrive_urls['doSearchCount'] = base_url + "/DoSearchCount.ndrive"
+
+"""POST /MakeDirectory.ndrive
+
+Parms:
+    userid=carpedm20
+    useridx=6794877
+    dummy=40841
+    dstresource=%2F%EC%83%88%20%ED%8F%B4%EB%8D%94%2F
+
+Return:
+    {
+        "resultcode":0,
+        "message":"success"
+    }
+"""
+ndrive_urls['makeDirectory'] = base_url + "/MakeDirectory.ndrive"
+
+"""GET /api/share/shareUrl.nhn
+
+Params:
+    _callback=window.__jindo_callback._347
+    userid=carpedm20
+    useridx=6794877
+    path=%2Ftest2%2F
+    passwd=test
+
+Return:
+    window.__jindo_callback._347({
+      "resultcode" : 0,
+      "message" : "success",
+      "resultvalue" : {
+        "sharefolderpath" : "/test2/",
+        "expiredate" : "2014-03-20 23:59:59",
+        "sharefoldersize" : "0",
+        "sharekey" : "s0lZSpAruY1yUnf5TQiQPyHdDCsI2jgW9LXtacfedsIF",
+        "passwd" : "test",
+        "shareno" : 232506,
+        "defaultExpireDate" : 1395241200000,
+        "nickName" : "carpedm20",
+        "href" : "http://me2.do/x3NHmUHv",
+        "daysago" : 30
+      }
+    })
+"""
+ndrive_urls['shareUrl'] = api_url + "/api/share/shareUrl.nhn"
+
+"""GET /api/files/createFileLink.nhn
+
+Params:
+    _callback=window.__jindo_callback._8920
+    userid=carpedm20
+    useridx=6794877
+    resourceno=12457054906
+
+Return:
+    window.__jindo_callback._8920({
+      "resultcode" : 0,
+      "message" : "success",
+      "resultvalue" : {
+        "accesscount" : 100,
+        "expiredaysago" : 26,
+        "short_url" : "http://me2.do/5kZxmIY9",
+        "expiredate" : "2014-03-17T16:31:48+09:00"
+      }
+    })
+"""
+ndrive_urls['createFileLink'] = api_url + '/api/files/createFileLink.nhn'
