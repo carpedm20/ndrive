@@ -116,7 +116,7 @@ class ndrive(object):
 
         Returns:
             metadata:
-              Result of the function in JSON form.
+              Result of the function in dict form.
             False:
               Failed to execute Ndrive API function.
         """
@@ -160,7 +160,7 @@ class ndrive(object):
 
         Returns:
             metadata:
-              Result of the function in JSON form.
+              Result of the function in dict form.
             False:
               Failed to execute Ndrive API function.
         """
@@ -475,7 +475,7 @@ class ndrive(object):
 
         Returns:
             List of dict:
-              List of files for a path in Dict form.
+              List of files for a path in dict form.
                 ex)
                   [
                     {
@@ -503,6 +503,9 @@ class ndrive(object):
             False:
               Failed to get list.
         """
+        if type not in range(1, 6):
+            print "Error getList: `type` should be between 1 to 5"
+            return False
         data = {'orgresource': full_path,
                 'type': type,
                 'dept': dept,
@@ -597,7 +600,7 @@ class ndrive(object):
 
         Args:
             full_path:
-              The full path to get the directory property.
+              The full path of directory to get share url.
               Should be end with '/'.
                 ex) /folder/
             passwd:
@@ -627,8 +630,41 @@ class ndrive(object):
             print "Error makeShareUrl: %s" % (metadata)
             return False
 
+    def getFileLink(self, full_path):
+        """Get a link of file
+        
+        Args:
+            full_path:
+              The full path of file to get file link
+              Should be end with '/'.
+                ex) /folder/
+        Returns:
+            URL:
+              share url for a directory
+            False:
+              Failed to share a directory
+        """
+        prop = self.getProperty(full_path)
+
+        if not prop:
+            print "Error getFileLink: wrong full_path"
+            return False
+        else:
+            prop_url = prop['filelinkurl']
+            if prop_url:
+                print "URL: " + prop_url
+                return prop_url
+            else:
+                resourceno = prop["resourceno"]
+                url = self.createFileLink(resourceno)
+
+                if url:
+                    return url
+                else:
+                    return False
+
     def createFileLink(self, resourceno):
-        """Make a file link
+        """Make a link of file
 
         Args:
             resourceno:
@@ -638,6 +674,8 @@ class ndrive(object):
               share url for a directory
             False:
               Failed to share a directory
+        Remarks:
+            If you don't know ``resourceno``, you'd better use getFileLink.
         """
         data = {'_callback': 'window.__jindo_callback._8920',
                 'resourceno': resourceno,
@@ -672,7 +710,7 @@ class ndrive(object):
               - exif
               - filelink
               - filelinkurl
-              - filetype
+              - filetype => 1: document, 2: image, 3: video, 4: music, 5: zip
               - fileuploadstatus
               - getcontentlength
               - getlastmodified
@@ -807,8 +845,8 @@ class ndrive(object):
             pagingrow
 
         Returns:
-            Json string:
-              Music album list as JSON format.
+            List of dict:
+              Music album list as dict format.
                 ex)
                   [
                     {
@@ -835,6 +873,102 @@ class ndrive(object):
         s, metadata = self.POST('getMusicAlbumList', data)
 
         if s is True:
+            return metadata
+        else:
+            return False
+    def doSearch(self, filename, filetype = None, type = 3, full_path = '/', sharedowner = 'A', datatype = 'all', sort = 'update', order = 'desc', searchtype = 'filesearch', startnum = 0, pagingrow = 100, includeworks = 'N', bodysearch = 'N', dummy = 36644):
+        """Get music album list.
+
+        Args:
+            filename:
+              Query to search.
+            filetype:
+              Type of file.
+              ex) None: all, 1: document, 2:image, 3: video, 4: msuic, 5: zip
+            type: 1 => only directories with idxfolder property
+                  2 => only files
+                  3 => directories and files with thumbnail info
+                      ex) viewHeight, viewWidth for Image file
+                  4 => only directories except idxfolder
+                  5 => directories and files without thumbnail info
+            full_path:
+              Directory path to search recursively.
+            sharedowner:
+              File priority to search.
+              ex) P: priority files only, A: all files.
+            datatype:
+              ???
+            sort:
+              Order criteria of search result
+              ex) update, date ...
+            order:
+              Order of files.
+              ex) desc or inc
+            searchtype:
+              ???
+            startnum:
+              Start index of search result
+            pagingrow:
+              Number of result from startnum
+            includeworks:
+              Whether to include Naver Work files to result.
+            bodysearch:
+              Search content of file (?)
+        Returns:
+            List of dict:
+              List of search results include filename.
+
+              - authtoken
+              - content
+              - copyright
+              - creationdate
+              - domaintype
+              - filelink
+              - fileuploadstatus
+              - getcontentlength
+              - getlastmodified
+              - hilightfilename
+              - href
+              - lastaccessed
+              - owner
+              - ownerid
+              - owneridc
+              - owneridx
+              - ownership
+              - protect
+              - resourceno
+              - resourcetype
+              - root
+              - root_shareno
+              - s_type
+              - sharedfoldername
+              - sharedinfo
+              - shareno
+              - subpath
+              - thumbnailpath
+              - virusstatus
+        """
+        data = {'filename': filename,
+                'filetype': filetype,
+                'dstresource': full_path,
+                'sharedowner': sharedowner,
+                'datatype': datatype,
+                'sort': sort,
+                'order': order,
+                'searchtype': searchtype,
+                'startnum': startnum,
+                'pagingrow': pagingrow,
+                'includeworks': includeworks,
+                'bodysearch': bodysearch,
+                'userid': self.user_id,
+                'useridx': self.useridx,
+                'dummy': dummy,
+                }
+        s, metadata = self.POST('doSearch', data)
+
+        if s is True:
+            if metadata:
+                print "Success doSearch: no result found"
             return metadata
         else:
             return False
