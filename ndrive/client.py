@@ -19,18 +19,19 @@ Copyright 2014 Kim Tae Hoon
 """
 
 import os, sys
-import urllib2
+from os.path import expanduser
+import urllib, urllib2
 import requests
 import json
 import magic
 import datetime
 import re
 
-from .auth import naver_login
+from .auth import getCookie
 from .urls import ndrive_urls as nurls
 from .utils import byte_readable
 
-class ndrive(object):
+class Ndrive(object):
     """
     This class lets you make Ndrive API calls. First, you need to 
     log in with Ndrive account or set NID_AUT and NID_SES manually.
@@ -82,19 +83,20 @@ class ndrive(object):
             return False
 
         try:
-            cookie = naver_login(user_id, password)
+            cookie = getCookie(user_id, password)
         except:
+            print "[*] Error getCookie: failed"
             return False
 
         self.session.cookies.set('NID_AUT', cookie["NID_AUT"])
         self.session.cookies.set('NID_SES', cookie["NID_SES"])
 
-        s = self.getRegisterUserInfo(svctype, auth)
+        s, metadata = self.getRegisterUserInfo(svctype, auth)
 
         if s is True:
             return True
         else:
-            print "[*] Error getRegisterUserInfo: failed"
+            print "[*] Error getRegisterUserInfo: " + metadata['message']
             return False
 
     def checkAccount(self):
@@ -215,10 +217,9 @@ class ndrive(object):
 
         if s is True:
             self.useridx = metadata['useridx']
-            return True
+            return True, metadata
         else:
-            print metadata
-            return False
+            return False, metadata
             
     def checkStatus(self):
         """Check status
@@ -353,6 +354,41 @@ class ndrive(object):
             print metadata
 
         return s
+
+    def download(self, from_path, to_path):
+        """Download a file.
+
+        Args:
+            from_path:
+              The full path to download the file to, *including the file name*.
+              If the destination directory does not yet exist, it will be created.
+                ex) /Picture/flower.png
+            to_path:
+              The full path of a file to be saved in local directory.
+
+                ex) ./flower.png
+        Returns:
+            File
+        """
+        url = nurls['download'] + from_path
+
+        data = {'attachment':2,
+                'userid': self.user_id,
+                'useridx': self.useridx,
+                'NDriveSvcType': "NHN/ND-WEB Ver",
+               }
+
+        if '~' in to_path:
+            to_path = expanduser(to_path)
+
+        with open(to_path, 'wb') as handle:
+            request = self.session.get(url, params = data, stream=True)
+
+            for block in request.iter_content(1024):
+                if not block:
+                    break
+                handle.write(block)
+            return handle
 
     def put(self, file_obj, full_path, overwrite = False):
         """Upload a file.
@@ -969,6 +1005,8 @@ class ndrive(object):
         if s is True:
             if metadata:
                 print "Success doSearch: no result found"
+                return {}
             return metadata
         else:
+            print "Failed doSearch: search failed"
             return False

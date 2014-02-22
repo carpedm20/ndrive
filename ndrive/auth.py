@@ -10,7 +10,7 @@ import requests
 import urllib, base64, rsa, httplib, re
 import spidermonkey
 
-def naver_login(id, password):
+def getCookie(id, password):
     f = urllib.urlopen('http://static.nid.naver.com/enclogin/keys.nhn')
 
     keystring = f.read()
@@ -32,14 +32,23 @@ def naver_login(id, password):
         rsa.setPublic(evalue, nvalue);
         uid = '%s';
         upw = '%s';
-        encrypted = rsa.encrypt(getLenChar(sessionkey)+sessionkey+getLenChar(uid)+uid+getLenChar(upw)+upw);
+        encrypted = rsa.encrypt(getLenChar(sessionkey)+sessionkey\
+                    +getLenChar(uid)+uid+getLenChar(upw)+upw);
         ''' %(keystring, id, password))
 
     keyname, encpw = str(cx.execute('keyname')), str(cx.execute('encrypted'))
-    params = dict(enctp='1', encnm=keyname, svctype='0', enc_url='http0X0.0000000000001P-10220.0000000.000000www.naver.com', url='www.naver.com', smart_level='1', encpw=encpw)
+    params = dict(enctp='1',
+                  encnm=keyname,
+                  svctype='0',
+                  enc_url='http0X0.0000000000001P-10220.\
+                           0000000.000000www.naver.com',
+                  url='www.naver.com',
+                  smart_level='1',
+                  encpw=encpw)
     params = urllib.urlencode(params)
 
-    headers = {'Content-type': 'application/x-www-form-urlencoded', 'Accept':'text/plain'}
+    headers = {'Content-type': 'application/x-www-form-urlencoded',
+               'Accept':'text/plain'}
     conn = httplib.HTTPSConnection('nid.naver.com')
     conn.request('POST', '/nidlogin.login', params, headers)
     response = conn.getresponse()

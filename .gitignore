@@ -7,3 +7,6 @@ backup.*
 # Sphinx
 docs/Makefile
 docs/_build
+
+# Test
+test.py

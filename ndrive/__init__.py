@@ -9,8 +9,8 @@ __author__ = 'Kim Tae Hoon'
 __license__ = 'MIT License'
 __copyright__ = 'Copyright 2014 Kim Tae Hoon'
 
-from .auth import naver_login
-from .client import ndrive
+from .auth import getCookie
+from .client import Ndrive
 from .urls import ndrive_urls
 from .file import FileInfo
 

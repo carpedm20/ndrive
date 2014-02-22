@@ -18,6 +18,19 @@ ndrive_urls = {}
 base_url = "http://ndrive2.naver.com"
 api_url = "http://ndrive.naver.com"
 
+"""GET /FILE_PATH
+
+Params:
+    attachment=2
+    userid=carpedm20
+    useridx=6794877
+    NDriveSvcType=NHN/ND-WEB%20Ver
+
+Returns:
+    File
+"""
+ndrive_urls['download'] = base_url
+
 """GET /GetRegisterUserInfo.ndrive
 
 Params:

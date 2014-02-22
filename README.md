@@ -5,8 +5,8 @@ ndrive is a python wrapper for Naver Ndrive
 
 Below is the sample code to use ndrive module in python
 
-    >>> from ndrive import ndrive
-    >>> n = ndrive()
+    >>> from ndrive import Ndrive
+    >>> n = Ndrive()
     >>> n.login("YOUR_ID","YOUR_PASSWORD")
     >>> n.uploadFile("FILE_NAME")
 
@@ -33,7 +33,7 @@ Documentation
 
 Work in process
 
->> http://ndrive.readthedocs.org/en/latest/
+> http://ndrive.readthedocs.org/en/latest/
 
 
 To-do
