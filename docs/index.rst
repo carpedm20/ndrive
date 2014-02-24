@@ -1,4 +1,3 @@
-
 ndrive manual
 =============
 
@@ -98,4 +97,6 @@ License and Author
 
 This Ndrive package is opened under the MIT license. See LISENCE file for a further information.
 
-I'm Kim Tae Hoon, a student and developr :)
+I'm `Kim Tae Hoon`_, a student and developr :)
+
+.. _Kim Tae Hoon: http://carpedm20.us.to/
