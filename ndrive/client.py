@@ -1,18 +1,24 @@
 # -*- coding: utf-8 -*-
 
 """
+
+====================================
 ndrive
-======
+====================================
+
+What is ndrive
+==============
 
 ndrive is a Naver Ndrive wrapper for python
 
+
 Getting started
----------------
+===============
 
     git clone https://github.com/carpedm20/pyndrive.git
 
 Copyright
----------
+=========
 
 Copyright 2014 Kim Tae Hoon
 
@@ -31,30 +37,26 @@ from .auth import getCookie
 from .urls import ndrive_urls as nurls
 from .utils import byte_readable
 
+###############################################################################
 class Ndrive(object):
-    """
-    This class lets you make Ndrive API calls. First, you need to 
-    log in with Ndrive account or set NID_AUT and NID_SES manually.
+    """Initialize ``NdriveClient`` instance.
 
+    Using given user information, login to ndrive server and create a session
+
+    :param bool debug: (optional) print all metadata of http requests
+    :param str NID_AUT: (optional) Naver account authentication info
+    :param str NID_SES: (optional) Naver account session info
+
+    Usage::
+
+        >>> from ndrive import Ndrive
+        >>> nd = Ndrive()
     """
+
     debug = False
-
-    # requests session
-    # Cookies : NID_AUT, NID_SES, useridx
     session = requests.session()
 
     def __init__(self, debug = False, NID_AUT = None, NID_SES= None):
-        """Initialize ``NdriveClient`` instance.
-
-        Using given user information, login to ndrive server and create a session
-
-        Args:
-            NID_AUT: Naver account authentication info
-            NID_SES: Naver account session info
-
-        Returns:
-
-        """
         self.debug = debug
         self.session.headers["User-Agent"] = \
             "Mozilla/5.0 (Windows NT 6.2; WOW64) Chrome/32.0.1700.76 Safari/537.36"
@@ -64,16 +66,14 @@ class Ndrive(object):
     def login(self, user_id, password, svctype = "Android NDrive App ver", auth = 0):
         """Log in Naver and get cookie
 
-        Agrs:
-            user_id: Naver account's login id
-            password: Naver account's login password
+            s = nd.login("YOUR_ID", "YOUR_PASSWORD")
 
-        Returns:
-            True: Login success
-            False: Login failed
+        :param str user_id: Naver account's login id
+        :param str password: Naver account's login password
+        :param str svctype: Service type
+        :param auth: ???
 
-        Remarks:
-            self.cookie is a dictionary with 5 keys: path, domain, NID_AUT, nid_inf, NID_SES
+        :return: ``True`` when success to login or ``False``
         """
         self.user_id = user_id
         self.password = password
@@ -108,19 +108,12 @@ class Ndrive(object):
             return True, None
 
     def GET(self, func, data):
-        """GET http request to execute Ndrive API
+        """Send GET request to execute Ndrive API
 
-        Args:
-            func:
-              The function name you want to execute in Ndrive API.
-            params:
-              Parameter data for HTTP request.
+        :param func: The function name you want to execute in Ndrive API.
+        :param params: Parameter data for HTTP request.
 
-        Returns:
-            metadata:
-              Result of the function in dict form.
-            False:
-              Failed to execute Ndrive API function.
+        :returns: metadata when success or False when failed
         """
         if func not in ['getRegisterUserInfo']:
             s, message = self.checkAccount()
@@ -130,6 +123,7 @@ class Ndrive(object):
 
         url = nurls[func]
         r = self.session.get(url, params = data)
+        r.encoding = 'utf-8'
 
         if self.debug:
             print r.text
@@ -152,19 +146,12 @@ class Ndrive(object):
             return False, "Error %s: Failed to send GET request" %func
 
     def POST(self, func, data):
-        """POST http request to execute Ndrive API
+        """Send POST request to execute Ndrive API
 
-        Args:
-            func:
-              The function name you want to execute in Ndrive API.
-            params:
-              Parameter data for HTTP request.
+        :param func: The function name you want to execute in Ndrive API.
+        :param params: Parameter data for HTTP request.
 
-        Returns:
-            metadata:
-              Result of the function in dict form.
-            False:
-              Failed to execute Ndrive API function.
+        :returns: ``metadata`` when success or ``False`` when failed
         """
         s, message = self.checkAccount()
         if s is False:
@@ -172,9 +159,10 @@ class Ndrive(object):
 
         url = nurls[func]
         r = self.session.post(url, data = data)
+        r.encoding = 'utf-8'
 
         if self.debug:
-            print r.text.decode("unicode-escape").encode("utf-8")
+            print r.text.encode("utf-8")
 
         try:
             metadata = json.loads(r.text)
@@ -195,18 +183,10 @@ class Ndrive(object):
     def getRegisterUserInfo(self, svctype = "Android NDrive App ver", auth = 0):
         """Retrieve information about useridx
 
-        Args:
-            svctype:
-              Information about the platform you are using right now.
-            auth:
-              ???
+        :param svctype: Information about the platform you are using right now.
+        :param auth: Authentication type
 
-        Returns:
-            True:
-              Success to get useridx
-            False:
-              Failed to get useridx
-
+        :return: ``True`` when success or ``False`` when failed
         """
         data = {'userid': self.user_id,
                 'svctype': svctype,
@@ -224,14 +204,9 @@ class Ndrive(object):
     def checkStatus(self):
         """Check status
 
-        Args:
+        Check whether it is possible to access Ndrive or not.
 
-        Returns:
-            True:
-              Sucess
-            False:
-              Failed
-
+        :return: ``True`` when success or ``False`` when failed.
         """
         self.checkAccount()
 
@@ -239,6 +214,7 @@ class Ndrive(object):
                 'useridx': self.useridx
                }
         r = self.session.post(nurls['checkStatus'], data = data)
+        r.encoding = 'utf-8'
 
         p = re.compile(r'\<message\>(?P<message>.+)\</message\>')
         message = p.search(r.text).group('message')
@@ -251,19 +227,7 @@ class Ndrive(object):
     def uploadFile(self, file_obj, full_path, overwrite = False):
         """Upload a file as Ndrive really do.
 
-        Args:
-            file_obj
-              A file-like object to check whether possible to upload.
-              You can pass a string as a file_obj or a real file object.
-            full_path:
-              The full path to upload the file to, *including the file name*.
-              If the destination directory does not yet exist, it will be created.
-                ex) /Picture/flower.png
-            overwrite:
-              Whether to overwrite an existing file at the given path. (Default ``False``.)
-
-        Remarks:
-            How Ndrive uploads a file to its server:
+        This function imitates the process when Ndrive uploads a local file to its server. The process follows 7 steps:
               1. POST /CheckStatus.ndrive
               2. POST /GetDiskSpace.ndrive
               3. POST /CheckUpload.ndrive
@@ -271,6 +235,12 @@ class Ndrive(object):
               5. POST /GetList.ndrive
               6. POST /GetWasteInfo.ndrive
               7. POST /GetDiskSpace.ndrive
+
+            nd.uploadFile('./flower.png','/Picture/flower.png')
+
+        :param file_obj: A file-like object to check whether possible to upload. You can pass a string as a file_obj or a real file object.
+        :param full_path: The full path to upload the file to, *including the file name*. If the destination directory does not yet exist, it will be created. 
+        :param overwrite: Whether to overwrite an existing file at the given path. (Default ``False``.)
         """
         s = self.checkStatus()
         s = self.getDiskSpace()
@@ -282,10 +252,9 @@ class Ndrive(object):
     def getDiskSpace(self):
         """Get disk space information.
 
-        Returns:
-            metadata:
-              Disk information in DICT format
+        :return: ``metadata`` if success or ``error message``
 
+        :metadata:
               - expandablespace
               - filemaxsize
               - largefileminsize
@@ -314,23 +283,11 @@ class Ndrive(object):
     def checkUpload(self, file_obj, full_path = '/', overwrite = False):
         """Check whether it is possible to upload a file.
 
-        Args:
-            file_obj
-              A file-like object to check whether possible to upload.
-              You can pass a string as a file_obj or a real file object.
-            full_path: 
-              The full path to upload the file to, *including the file name*.
-              If the destination directory does not yet exist, it will be created.
-                ex) /Picture/flower.png
-            overwrite:
-              Whether to overwrite an existing file at the given path. (Default ``False``.)
+        :param file_obj: A file-like object to check whether possible to upload. You can pass a string as a file_obj or a real file object.
+        :param str full_path: The full path to upload the file to, *including the file name*. If the destination directory does not yet exist, it will be created. 
+        :param overwrite: Whether to overwrite an existing file at the given path. (Default ``False``.)
             
-        Returns:
-            True:
-              Possible to upload a file with a given file_size
-            False:
-              Impossible to upload a file with a given file_size
-
+        :return: ``True`` if possible to upload or ``False`` if impossible to upload.
         """
         try:
             file_obj = file_obj.name
@@ -358,17 +315,12 @@ class Ndrive(object):
     def download(self, from_path, to_path):
         """Download a file.
 
-        Args:
-            from_path:
-              The full path to download the file to, *including the file name*.
-              If the destination directory does not yet exist, it will be created.
-                ex) /Picture/flower.png
-            to_path:
-              The full path of a file to be saved in local directory.
+            >>> nd.download('/Picture/flower.png', '~/flower.png')
 
-                ex) ./flower.png
-        Returns:
-            File
+        :param from_path: The full path to download the file to, *including the file name*. If the destination directory does not yet exist, it will be created.
+        :param to_path: The full path of a file to be saved in local directory.
+
+        :returns: File object
         """
         url = nurls['download'] + from_path
 
@@ -393,20 +345,13 @@ class Ndrive(object):
     def put(self, file_obj, full_path, overwrite = False):
         """Upload a file.
 
-        Args:
-            file_obj
-              A file-like object to check whether possible to upload.
-              You can pass a string as a file_obj or a real file object.
-            full_path: 
-              The full path to upload the file to, *including the file name*.
-              If the destination directory does not yet exist, it will be created.
-                ex) /Picture/flower.png
+            >>> nd.put('./flower.png','/Picture/flower.png')
+            >>> nd.put(open('./flower.png','r'),'/Picture/flower.png')
 
-        Returns:
-            True:
-              Success to upload a file.
-            False:
-              Failed to upload a file.
+        :param file_obj: A file-like object to check whether possible to upload. You can pass a string as a file_obj or a real file object.
+        :param full_path: The full path to upload the file to, *including the file name*. If the destination directory does not yet exist, it will be created.
+
+        :return: ``True`` when succcess to upload a file or ``False``
         """
         try:
             file_obj = open(file_obj, 'r')
@@ -435,6 +380,8 @@ class Ndrive(object):
                    'NDriveSvcType': 'NHN/DRAGDROP Ver',
         }
         r = self.session.put(url = url, data = content, headers = headers)
+        r.encoding = 'utf-8'
+
         message = json.loads(r.text)['message']
 
         if message != 'success':
@@ -447,16 +394,11 @@ class Ndrive(object):
     def delete(self, full_path):
         """Delete a file in full_path
 
-        Args:
-            full_path: 
-              The full path to delete the file to, *including the file name*.
-                ex) /Picture/flower.png
+            >>> nd.delete('/Picture/flower.png')
 
-        Returns:
-            True:
-              Success to delete the file
-            False:
-              Failed to delete the file
+        :param full_path: The full path to delete the file to, *including the file name*.
+
+        :return: ``True`` if success to delete the file or ``False``
         """
         now = datetime.datetime.now().isoformat()
         url = nurls['delete'] + full_path
@@ -469,6 +411,7 @@ class Ndrive(object):
         }
         try:
             r = self.session.delete(url = url, headers = headers)
+            r.encoding = 'utf-8'
         except:
             print "Error delete: wrong full_path"
             return False
@@ -484,60 +427,58 @@ class Ndrive(object):
     def getList(self, full_path, type = 1, dept = 0, sort = 'name', order = 'asc', startnum = 0, pagingrow = 1000, dummy = 56184):
         """Get a list of files
 
-        Args:
-            full_path: 
-              The full path to get the file list.
-                ex) /Picture/
+            >>> nd_list = nd.getList('/', type=3)
+            >>> print nd_list
 
-            type: 1 => only directories with idxfolder property
-                  2 => only files
-                  3 => directories and files with thumbnail info
-                      ex) viewHeight, viewWidth for Image file
-                  4 => only directories except idxfolder
-                  5 => directories and files without thumbnail info
+        There are 5 kinds of ``type``::
 
-            depth: Dept for file list
-            sort: name => 이름
-                  file => file type, 종류
-                  length => size of file, 크기
-                  date => edited date, 수정한 날짜
-                  credate => creation date, 올린 날짜
-                  protect => protect or not, 중요 표시
+            1 => only directories with idxfolder property
+            2 => only files
+            3 => directories and files with thumbnail info
+            ex) viewHeight, viewWidth for Image file
+            4 => only directories except idxfolder
+            5 => directories and files without thumbnail info
 
-            order: Order by (asc, desc)
-            startnum: ???
-            pagingrow: start index ?
-            dummy: ???
+        There are 5 kindes of ``sort``::
 
-        Returns:
-            List of dict:
-              List of files for a path in dict form.
-                ex)
-                  [
-                    {
-                      u'copyright': u'N',
-                      u'creationdate': u'2013-05-12T21:17:23+09:00',
-                      u'filelink': None,
-                      u'fileuploadstatus': u'1',
-                      u'getcontentlength': 0,
-                      u'getlastmodified': u'2014-01-26T12:23:07+09:00',
-                      u'href': u'/Codes/',
-                      u'lastaccessed': u'2013-05-12T21:17:23+09:00',
-                      u'lastmodifieduser': None,
-                      u'priority': u'1',
-                      u'protect': u'N',
-                      u'resourceno': 204041859,
-                      u'resourcetype': u'collection',
-                      u'sharedinfo': u'F',
-                      u'sharemsgcnt': 0,
-                      u'shareno': 0,
-                      u'subfoldercnt': 5,
-                      u'thumbnailpath': u'N',
-                      u'virusstatus': u'N'
-                    }
-                  ]
-            False:
-              Failed to get list.
+            file => file type, 종류
+            length => size of file, 크기
+            date => edited date, 수정한 날짜
+            credate => creation date, 올린 날짜
+            protect => protect or not, 중요 표시
+
+        :params full_path: The full path to get the file list.
+
+        :param type: 1, 2, 3, 4 or 5
+
+        :param depth: Dept for file list
+
+        :param sort: name => 이름
+
+        :param order: Order by (asc, desc)
+
+        :return: metadata (list of dict) or False when failed to get list
+
+        :metadata:
+            - u'copyright': u'N',
+            - u'creationdate': u'2013-05-12T21:17:23+09:00',
+            - u'filelink': None,
+            - u'fileuploadstatus': u'1',
+            - u'getcontentlength': 0,
+            - u'getlastmodified': u'2014-01-26T12:23:07+09:00',
+            - u'href': u'/Codes/',
+            - u'lastaccessed': u'2013-05-12T21:17:23+09:00',
+            - u'lastmodifieduser': None,
+            - u'priority': u'1',
+            - u'protect': u'N',
+            - u'resourceno': 204041859,
+            - u'resourcetype': u'collection',
+            - u'sharedinfo': u'F',
+            - u'sharemsgcnt': 0,
+            - u'shareno': 0,
+            - u'subfoldercnt': 5,
+            - u'thumbnailpath': u'N',
+            - u'virusstatus': u'N'
         """
         if type not in range(1, 6):
             print "Error getList: `type` should be between 1 to 5"
@@ -565,25 +506,14 @@ class Ndrive(object):
     def doMove(self, from_path, to_path, overwrite = False, bShareFireCopy = 'false', dummy = 56147):
         """Move a file.
 
-        Args:
-            from_path:
-              The path to the file or folder to be moved.
-            to_path:
-              The destination path of the file or folder to be copied.
-              File name should be included in the end of to_path.
-                ex) /Picture/flower.png
-            overwrite:
-              Whether to overwrite an existing file at the given path. (Default ``False``.)
-            bShareFireCopy:
-              ???
-            dummy:
-              ???
+            >>> nd.doMove('/Picture/flower.png', '/flower.png')
 
-        Returns:
-            True:
-              Success to move a file.
-            False:
-              Failed to move a file.
+        :param from_path: The path to the file or folder to be moved.
+        :param to_path: The destination path of the file or folder to be copied. File name should be included in the end of to_path.
+        :param overwrite: Whether to overwrite an existing file at the given path. (Default ``False``.)
+        :param bShareFireCopy: ???
+
+        :return: ``True`` if success to move a file or ``False``.
         """
         if overwrite:
             overwrite = 'F'
@@ -605,18 +535,12 @@ class Ndrive(object):
 
     def makeDirectory(self, full_path, dummy = 40841):
         """Make a directory
-        
-        Args:
-            full_path:
-              The full path to get the directory property.
-              Should be end with '/'.
-                ex) /folder/
 
-        Returns:
-            True:
-              Success to make a directory.
-            False:
-              Failed to make a directory.
+            >>> nd.makeDirectory('/test')
+        
+        :param full_path: The full path to get the directory property. Should be end with '/'.
+
+        :return: ``True`` when success to make a directory or ``False``
         """
         if full_path[-1] is not '/':
             full_path += '/'
@@ -634,11 +558,13 @@ class Ndrive(object):
     def makeShareUrl(self, full_path, passwd):
         """Make a share url of directory
 
+            >>> nd.makeShareUrl('/Picture/flower.png', PASSWORD)
+
         Args:
             full_path:
               The full path of directory to get share url.
               Should be end with '/'.
-                ex) /folder/
+              ex) /folder/
             passwd:
               Access password for shared directory
         Returns:
@@ -669,16 +595,9 @@ class Ndrive(object):
     def getFileLink(self, full_path):
         """Get a link of file
         
-        Args:
-            full_path:
-              The full path of file to get file link
-              Should be end with '/'.
-                ex) /folder/
-        Returns:
-            URL:
-              share url for a directory
-            False:
-              Failed to share a directory
+        :params full_path: The full path of file to get file link. Path should start and  end with '/'.
+
+        :return: ``Shared url`` or ``False`` if failed to share a file or directory through url
         """
         prop = self.getProperty(full_path)
 
@@ -702,16 +621,11 @@ class Ndrive(object):
     def createFileLink(self, resourceno):
         """Make a link of file
 
-        Args:
-            resourceno:
-              Resource number of a file to create link
-        Returns:
-            URL:
-              share url for a directory
-            False:
-              Failed to share a directory
-        Remarks:
-            If you don't know ``resourceno``, you'd better use getFileLink.
+        If you don't know ``resourceno``, you'd better use ``getFileLink``.
+
+        :param resourceno: Resource number of a file to create link
+
+        :return: ``Shared url`` or ``False`` when failed to share a file
         """
         data = {'_callback': 'window.__jindo_callback._8920',
                 'resourceno': resourceno,
@@ -731,17 +645,11 @@ class Ndrive(object):
     def getProperty(self, full_path, dummy = 56184):
         """Get a file property
 
-        Args:
-            full_path: 
-              The full path to get the file or directory property.
-                ex) /Picture/flower.png
-            dummy:
-              ???
+        :params full_path: The full path to get the file or directory property.
 
-        Returns:
-            Dict object:
-              Property information of a file.
+        :return: ``metadata`` if success or ``False`` if failed to get property
 
+        :metadata:
               - creationdate
               - exif
               - filelink
@@ -759,9 +667,6 @@ class Ndrive(object):
               - totalfilecnt
               - totalfoldercnt
               - virusstatus
-
-            False:
-              Failed to get property of a file.
         """
         data = {'orgresource': full_path,
                 'userid': self.user_id,
@@ -779,17 +684,13 @@ class Ndrive(object):
     def getVersionList(self, full_path, startnum = 0, pagingrow = 50, dummy = 54213):
         """Get a version list of a file or dierectory.
 
-        Args:
-            full_path: 
-              The full path to get the file or directory property.
-                ex) /Picture/flower.png
-            startnum: Start version index.
-            pagingrow: Max # of version list.
+        :params full_path: The full path to get the file or directory property. Path should start with '/'
+        :params startnum: Start version index.
+        :params pagingrow: Max # of version list in one page.
 
-        Returns:
-            List of dict:
-              Version list of a file or directory in Dict format.
+        :returns: ``metadata`` if succcess or ``False`` 
 
+        :metadata:
               - createuser
               - filesize
               - getlastmodified
@@ -820,17 +721,9 @@ class Ndrive(object):
     def getVersionListCount(self, full_path, dummy = 51234):
         """Get a count of version list.
 
-        Args:
-            full_path: 
-              The full path to get the file or directory property.
-                ex) /Picture/flower.png
+        :params full_path: The full path to get the file or directory property.
 
-        Returns:
-            Integer:
-              Number of a version list.
-            False:
-              Failed to get count of a version list.
-
+        :returns: ``Integer`` (number of version lists) or ``False`` if failed to get a version list
         """
         data = {'orgresource':full_path,
                 'userid': self.user_id,
@@ -847,16 +740,10 @@ class Ndrive(object):
     def setProperty(self, full_path, protect, dummy = 7046):
         """Set property of a file.
 
-        Args:
-            full_path: 
-              The full path to get the file or directory property.
-                ex) /Picture/flower.png
-            protect:
-              'Y' or 'N', 중요 표시
+        :param full_path: The full path to get the file or directory property.
+        :param protect: 'Y' or 'N', 중요 표시
 
-        Returns:
-            True: Success to set property.
-            False: Failed to set property.
+        :return: ``True`` when success to set property or ``False``
         """
         data = {'orgresource': full_path,
                 'protect': protect,
@@ -874,30 +761,19 @@ class Ndrive(object):
     def getMusicAlbumList(self, tagtype = 0, startnum = 0, pagingrow = 100, dummy = 51467):
         """Get music album list.
 
-        Args:
-            tagtype
-              ???
-            startnum
-            pagingrow
+        :param tagtype: ???
 
-        Returns:
-            List of dict:
-              Music album list as dict format.
-                ex)
-                  [
-                    {
-                      u'album':u'Greatest Hits Coldplay',
-                      u'artist':u'Coldplay',
-                      u'href':u'/Coldplay - Clocks.mp3',
-                      u'musiccount':1,
-                      u'resourceno':12459548378,
-                      u'tagtype':1,
-                      u'thumbnailpath':u'N',
-                      u'totalpath':u'/'
-                    }
-                  ]
-            False:
-              Failed to get music album list.
+        :return: ``metadata`` or ``False``
+
+        :metadata: Music album list as dict format.
+            - u'album':u'Greatest Hits Coldplay',
+            - u'artist':u'Coldplay',
+            - u'href':u'/Coldplay - Clocks.mp3',
+            - u'musiccount':1,
+            - u'resourceno':12459548378,
+            - u'tagtype':1,
+            - u'thumbnailpath':u'N',
+            - u'totalpath':u'/'
         """
         data = {'tagtype': tagtype,
                 'startnum': startnum,
@@ -915,74 +791,60 @@ class Ndrive(object):
     def doSearch(self, filename, filetype = None, type = 3, full_path = '/', sharedowner = 'A', datatype = 'all', sort = 'update', order = 'desc', searchtype = 'filesearch', startnum = 0, pagingrow = 100, includeworks = 'N', bodysearch = 'N', dummy = 36644):
         """Get music album list.
 
-        Args:
-            filename:
-              Query to search.
-            filetype:
-              Type of file.
-              ex) None: all, 1: document, 2:image, 3: video, 4: msuic, 5: zip
-            type: 1 => only directories with idxfolder property
-                  2 => only files
-                  3 => directories and files with thumbnail info
-                      ex) viewHeight, viewWidth for Image file
-                  4 => only directories except idxfolder
-                  5 => directories and files without thumbnail info
-            full_path:
-              Directory path to search recursively.
-            sharedowner:
-              File priority to search.
-              ex) P: priority files only, A: all files.
-            datatype:
-              ???
-            sort:
-              Order criteria of search result
-              ex) update, date ...
-            order:
-              Order of files.
-              ex) desc or inc
-            searchtype:
-              ???
-            startnum:
-              Start index of search result
-            pagingrow:
-              Number of result from startnum
-            includeworks:
-              Whether to include Naver Work files to result.
-            bodysearch:
-              Search content of file (?)
-        Returns:
-            List of dict:
-              List of search results include filename.
+        There are 4 kinds in ``type``":
+            1 => only directories with idxfolder property
+            2 => only files
+            3 => directories and files with thumbnail info
+            ex) viewHeight, viewWidth for Image file
+            4 => only directories except idxfolder
+            5 => directories and files without thumbnail info
 
-              - authtoken
-              - content
-              - copyright
-              - creationdate
-              - domaintype
-              - filelink
-              - fileuploadstatus
-              - getcontentlength
-              - getlastmodified
-              - hilightfilename
-              - href
-              - lastaccessed
-              - owner
-              - ownerid
-              - owneridc
-              - owneridx
-              - ownership
-              - protect
-              - resourceno
-              - resourcetype
-              - root
-              - root_shareno
-              - s_type
-              - sharedfoldername
-              - sharedinfo
-              - shareno
-              - subpath
-              - thumbnailpath
-              - virusstatus
+        Tyere are 5 kindes of ``filetype``:
+            ex) None: all, 1: document, 2:image, 3: video, 4: msuic, 5: zip
+
+        :param filename: Query to search.
+        :param filetype: Type of a file to search.
+        :param full_path: Directory path to search recursively.
+        :param sharedowner: File priority to search. (P: priority files only, A: all files.)
+        :param datatype: Data type of a file to search
+        :param sort: Order criteria of search result. ('update', 'date' ...)
+        :param order: Order of files. ('desc' or 'inc')
+        :param searchtype: ???
+        :param includeworks: Whether to include Naver Work files to result.
+        :param bodysearch: Search content of file.
+
+        :returns: ``metadata`` or ``False``
+
+        :metadata: List of dict
+            - authtoken
+            - content
+            - copyright
+            - creationdate
+            - domaintype
+            - filelink
+            - fileuploadstatus
+            - getcontentlength
+            - getlastmodified
+            - hilightfilename
+            - href
+            - lastaccessed
+            - owner
+            - ownerid
+            - owneridc
+            - owneridx
+            - ownership
+            - protect
+            - resourceno
+            - resourcetype
+            - root
+            - root_shareno
+            - s_type
+            - sharedfoldername
+            - sharedinfo
+            - shareno
+            - subpath
+            - thumbnailpath
+            - virusstatus
         """
         data = {'filename': filename,
                 'filetype': filetype,

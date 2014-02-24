@@ -1,8 +1,3 @@
-"""
-Python wrapper for Naver Ndrive
-
-"""
-
 __title__ = 'ndrive'
 __version__ = '0.0.1'
 __author__ = 'Kim Tae Hoon'

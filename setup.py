@@ -15,5 +15,7 @@ setup(
     install_requires=[
         'requests',
         'python-magic',
+        'clint',
+        'json',
     ]
 )

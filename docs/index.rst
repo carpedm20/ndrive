@@ -1,22 +1,101 @@
-.. ndrive documentation master file, created by
-   sphinx-quickstart on Mon Jan 27 13:01:44 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
-Welcome to ndrive's documentation!
-==================================
+ndrive manual
+=============
 
-Contents:
+Introduction
+------------
 
-.. toctree::
-   :maxdepth: 2
+*ndrive* is a python library that can provide access to Naver Ndrive. This is not an official Ndrive python API, so some features may not be implemented, yet.
+
+    from ndrive import Ndrive
+    nd = Ndrive()
+    nd.login("YOUR_ID","YOUR_PASSWORD")
+    nd.uploadFile("test.txt",'/test.txt',True) # local_file, to_path, overwrite
 
 
+Key Features
+------------
 
-Indices and tables
-==================
+* Download and upload a file
+* Get file and directory list of Ndrive directories
+* Make a url share link for a specific directory or file
+* Search Ndrive file and  directory
+* Get properties of file and directory
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
+Installation
+------------
+
+This package is available in PyPI. To install it in your system, use easy_install::
+
+    $ easy_install ndrive
+
+Or use pip::
+
+    $ pip install ndrive
+
+Or check out developement version::
+
+    $ git clone git://github.com/carpedm20/ndrive.git
+
+
+Quick Start
+-----------
+
+If you want to start with Ndrive module, you need to *login* to Ndrive first. Just make a ``Ndrive`` object and use ``login`` method.
+
+Login::
+
+    nd = Ndrive()
+    nd.login("YOUR_ID","YOUR_PASSWORD")
+
+
+Then you might want to *download* a file from your Ndrive, but you might don't know exact filename in Ndrive directory. Then, you can use ``getList`` method to *get list* of files and directory of given directory.
+
+*Don't forget to put / in front of the Ndrive path, which indicate root directory of Ndrive*
+
+Get file and directory List::
+
+    nd_list = nd.getList('/', type=3)
+    print nd_list
+
+If you find a file, then you can download the file to your local directory.
+
+Download::
+
+    nd.download('/Picture/flower.png', './flower.png')
+
+Or you can upload a file::
+
+    nd.puloadFile('./flower.png','/Picture/flower.png')
+
+You can make a test directory at root directory::
+
+    nd.makeDirectory('/test')
+
+and move a file from root to a created test directory::
+
+    nd.doMove('/flower.png','/test/flower.png')
+
+
+API documentation
+-----------------
+
+This is the information of class and method of *ndrive*.
+
+.. autoclass:: ndrive.Ndrive
+    :members:
+
+
+Changelog
+---------
+
+.. include:: ../changelog.rst
+
+
+License and Author
+------------------
+
+This Ndrive package is opened under the MIT license. See LISENCE file for a further information.
+
+I'm Kim Tae Hoon, a student and developr :)
