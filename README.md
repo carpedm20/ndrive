@@ -31,9 +31,7 @@ Or, you can also install manually:
 Documentation
 -------------
 
-Work in process
-
-> http://ndrive.readthedocs.org/en/latest/
+The documentation is available at http://carpedm20.gitub.io/ndrive/
 
 
 To-do

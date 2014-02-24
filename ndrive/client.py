@@ -28,7 +28,7 @@ import os, sys
 from os.path import expanduser
 import urllib, urllib2
 import requests
-import json
+import simplejson as json
 import magic
 import datetime
 import re

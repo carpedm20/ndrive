@@ -10,3 +10,6 @@ docs/_build
 
 # Test
 test.py
+
+# Distribution
+dist
