@@ -1,4 +1,6 @@
 """
+Ndrive Command Line Interface (CLI)
+
 The basic structure of this code is based on https://github.com/bossiernesto/python-dropbox/blob/master/example/cli_client.py
 
 Copyright 2014 Kim Tae Hoon
@@ -16,97 +18,148 @@ from clint.textui import colored
 from ndrive import Ndrive
 
 class NdriveTerm(cmd.Cmd):
-    TMP_PATH = expanduser('~/.ndrive/tmp')
+    TMP_PATH = expanduser('~/.ndrive/')
 
     def __init__(self, id, passwd):
         cmd.Cmd.__init__(self)
         self.n = Ndrive()
+
+        self.id = id
+        self.passwd = passwd
         s = self.n.login(id, passwd)
+
         if s:
             self.stdout.write('Success lgoin\n')
         else:
             self.stdout.write('Failed lgoin: wrong Id or Password\n')
             return
+
         self.current_path = '/'
-        self.prompt = "Ndrive> "
+        self.do_cd(self.current_path)
+
+        self.prompt = "> %s@Ndrive:%s " %(self.id, self.current_path)
 
     def do_ls(self, nothing = ''):
         """list files in current remote directory"""
-        resp = self.n.getList(self.current_path, type=3)
+        for d in self.dirs:
+            self.stdout.write("\033[0;34m" + ('%s\n' % d) + "\033[0m")
 
-        if resp:
-            for f in resp:
-                name = f['href']
-
-                if name[-1] == '/':
-                    name = os.path.basename(name[:-1])
-                    msg = "\033[0;34m" + ('%s\n' % name) + "\033[0m"
-                else:
-                    name = os.path.basename(name)
-                    msg = ('%s\n' % name)
-
-                self.stdout.write(msg)
+        for f in self.files:
+            self.stdout.write('%s\n' % f)
 
     def do_pwd(self, nothing = ''):
         self.stdout.write(('%s\n' % self.current_path).encode('utf-8'))
 
-    def do_cd(self, path):
+    def getList(self, text = '', path = '', directory = True):
+        if path == '':
+            path = self.current_path
+
+        resp = self.n.getList(path, type=3)
+        resp_list = [i['href'] for i in resp]
+        
+        lists = []
+        if resp:
+            for f in resp_list:
+                name = f.encode('utf-8')
+
+                if name[-1] == '/' and directory:
+                    name = os.path.basename(name[:-1])
+
+                    if name.find(text) == 0:
+                        lists.append(name + '/')
+                elif not directory:
+                    name = os.path.basename(name)
+
+                    if name.find(text) == 0:
+                        lists.append(name + '/')
+
+        return lists
+
+    def dir_complete(self, text = ''):
+        return self.getList(text, self.current_path, True)
+
+    def file_complete(self, text = ''):
+        return self.getList(text, self.current_path, False)
+
+    def do_cd(self, path = '/'):
         """change current working directory"""
         path = path[0]
 
         if path == "..":
             self.current_path = "/".join(self.current_path[:-1].split("/")[0:-1]) + '/'
+        elif path == '/':
+            self.current_path = "/"
         else:
             if path[-1] == '/':
                 self.current_path += path
             else:
                 self.current_path += path + '/'
 
-    def do_login(self):
-        """log in to a Ndrive account"""
-        try:
-            self.n.login()
-        except rest.ErrorResponse, e:
-            self.stdout.write('Error: %s\n' % str(e))
+        resp = self.n.getList(self.current_path, type=3)
 
-    def do_logout(self):
-        """log out of the current Ndrive account"""
-        self.sess.unlink()
-        self.current_path = ''
+        if resp:
+            self.dirs = []
+            self.files = []
+
+            for f in resp:
+                name = f['href'].encode('utf-8')
+
+                if name[-1] == '/':
+                    self.dirs.append(os.path.basename(name[:-1]))
+                else:
+                    self.files.append(os.path.basename(name))
+
+        self.prompt = "> %s@Ndrive:%s " %(self.id, self.current_path)
+
+    def complete_cd(self, text, line, start_idx, end_idx):
+        return self.dir_complete(text)
 
     def do_cat(self, path):
         """display the contents of a file"""
         path = path[0]
+        tmp_file_path = self.TMP_PATH + 'tmp'
 
-        f = self.n.download(self.current_path + path, self.TMP_PATH)
-        f = open(self.TMP_PATH, 'r')
+        if not os.path.exists(self.TMP_PATH):
+            os.makedirs(self.TMP_PATH)
+
+        f = self.n.download(self.current_path + path, tmp_file_path)
+        f = open(tmp_file_path, 'r')
 
         self.stdout.write(f.read())
         self.stdout.write("\n")
+    
+    def complete_cat(self, text, line, start_idx, end_idx):
+        return self.file_complete(text)
 
     def do_mkdir(self, path):
         """create a new directory"""
         path = path[0]
 
         self.n.makeDirectory(self.current_path + path)
+        self.dirs = self.dir_complete()
 
     def do_rm(self, path):
         path = path[0]
 
         """delete a file or directory"""
         self.n.delete(self.current_path + path)
+        self.dirs = self.dir_complete()
+        self.files = self.file_complete()
 
-    def do_mv(self, from_path, to_path):
+    def do_mv(self, from_path, to_path, nothing = ''):
         """move/rename a file or directory"""
-        self.n.doMove(self.current_path + "/" + from_path,
-                      self.current_path + "/" + to_path)
+        self.n.doMove(self.current_path + from_path,
+                      self.current_path + to_path)
+
+    def complete_mv(self, text, line, start_idx, end_idx):
+        return self.dir_complete(text)
 
     def do_account_info(self):
         """display account information"""
         s, metadata = self.n.getRegisterUserInfo()
         pprint.PrettyPrinter(indent=2).pprint(metadata)
 
-    def do_exit(self):
+    def do_exit(self, empty = ''):
         """exit"""
         return True
 
@@ -121,21 +174,6 @@ class NdriveTerm(cmd.Cmd):
 
         self.n.download(self.current_path + "/" + from_path, to_path)
 
-    def do_thumbnail(self, from_path, to_path, size='large', format='JPEG'):
-        """
-        Copy an image file's thumbnail to a local file and print out the
-        file's metadata.
-
-        Examples:
-          Ndrive> thumbnail file.txt ~/ndrive-file.txt medium PNG
-        """
-        to_file = open(os.path.expanduser(to_path), "wb")
-
-        f, metadata = self.api_client.thumbnail_and_metadata(
-                self.current_path + "/" + from_path, size, format)
-        print 'Metadata:', metadata
-        to_file.write(f.read())
-
     def do_put(self, from_path, to_path):
         """
         Copy local file to Ndrive
@@ -149,13 +187,13 @@ class NdriveTerm(cmd.Cmd):
 
     def do_search(self, string):
         """Search Ndrive for filenames containing the given string."""
-        results = self.n.search(string, full_path = self.current_path)
+        results = self.n.doSearch(string, full_path = self.current_path)
 
         if results:
             for r in results:
                 self.stdout.write("%s\n" % r['path'])
 
-    def do_help(self):
+    def do_help(self, empty = ''):
         # Find every "do_" attribute with a non-empty docstring and print
         # out the docstring.
         all_names = dir(self)
