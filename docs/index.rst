@@ -4,7 +4,7 @@ ndrive manual
 Introduction
 ------------
 
-*ndrive* is a python library that can provide access to Naver Ndrive. This is not an official Ndrive python API, so some features may not be implemented, yet.
+*ndrive* is a python library that can provide an access to Naver Ndrive. This is not an official Ndrive python API, so some features may not be implemented, yet.
 
     from ndrive import Ndrive
     nd = Ndrive()
