@@ -40,7 +40,7 @@ To-do
 1. Implement all APIs
 2. command-line tool
 
-![alt tag](http://1.bp.blogspot.com/-4xEWu0x8H_E/UwsUE94BjgI/AAAAAAAACSk/lL5Vt-Aqiag/s1600/cmd.png)
+![alt tag](http://2.bp.blogspot.com/-pwk0vl3XcAQ/UwsYboRWXlI/AAAAAAAACSw/5d8lKu4RuYg/s1600/cmd2.png)
 
 
 Copyright
