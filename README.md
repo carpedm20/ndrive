@@ -8,7 +8,7 @@ Below is the sample code to use ndrive module in python
     >>> nd = Ndrive()
     >>> nd.login("YOUR_ID","YOUR_PASSWORD")
     >>> nd.uploadFile("FILE_NAME", "/FILE_NAME")
-    >>> nd.download("FILE_NAME")
+    >>> nd.downloadFile("FILE_NAME")
 
 
 Installation

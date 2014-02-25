@@ -122,7 +122,7 @@ class NdriveTerm(cmd.Cmd):
         if not os.path.exists(self.TMP_PATH):
             os.makedirs(self.TMP_PATH)
 
-        f = self.n.download(self.current_path + path, tmp_file_path)
+        f = self.n.downloadFile(self.current_path + path, tmp_file_path)
         f = open(tmp_file_path, 'r')
 
         self.stdout.write(f.read())
@@ -172,7 +172,7 @@ class NdriveTerm(cmd.Cmd):
         """
         to_file = open(os.path.expanduser(to_path), "wb")
 
-        self.n.download(self.current_path + "/" + from_path, to_path)
+        self.n.downloadFile(self.current_path + "/" + from_path, to_path)
 
     def do_put(self, from_path, to_path):
         """

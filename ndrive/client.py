@@ -312,10 +312,10 @@ class Ndrive(object):
 
         return s
 
-    def download(self, from_path, to_path):
+    def downloadFile(self, from_path, to_path):
         """Download a file.
 
-            >>> nd.download('/Picture/flower.png', '~/flower.png')
+            >>> nd.downloadFile('/Picture/flower.png', '~/flower.png')
 
         :param from_path: The full path to download the file to, *including the file name*. If the destination directory does not yet exist, it will be created.
         :param to_path: The full path of a file to be saved in local directory.

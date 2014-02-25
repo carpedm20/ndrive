@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='ndrive',
     packages=['ndrive'],
-    version='0.0.1',
+    version='0.0.2',
     description='python wrapper for Naver Ndrive',
     long_description='',
     license='MIT License',
