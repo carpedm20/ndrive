@@ -323,7 +323,7 @@ class Ndrive(object):
         :returns: File object
         """
 
-        if to_path = '':
+        if to_path == '':
             file_name = os.path.basename(from_path)
             to_path = os.path.join(os.getcwd(), file_name)
 
