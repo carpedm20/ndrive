@@ -312,7 +312,7 @@ class Ndrive(object):
 
         return s
 
-    def downloadFile(self, from_path, to_path):
+    def downloadFile(self, from_path, to_path = ''):
         """Download a file.
 
             >>> nd.downloadFile('/Picture/flower.png', '~/flower.png')
@@ -322,6 +322,11 @@ class Ndrive(object):
 
         :returns: File object
         """
+
+        if to_path = '':
+            file_name = os.path.basename(from_path)
+            to_path = os.path.join(os.getcwd(), file_name)
+
         url = nurls['download'] + from_path
 
         data = {'attachment':2,
