@@ -6,10 +6,10 @@ Introduction
 
 *ndrive* is a python library that can provide an access to Naver Ndrive. This is not an official Ndrive python API, so some features may not be implemented, yet.
 
-    from ndrive import Ndrive
-    nd = Ndrive()
-    nd.login("YOUR_ID","YOUR_PASSWORD")
-    nd.uploadFile("test.txt",'/test.txt',True) # local_file, to_path, overwrite
+    >>> from ndrive import Ndrive
+    >>> nd = Ndrive()
+    >>> nd.login("YOUR_ID","YOUR_PASSWORD")
+    >>> nd.uploadFile("test.txt",'/test.txt',True)
 
 
 Key Features

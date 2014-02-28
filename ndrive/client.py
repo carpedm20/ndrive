@@ -605,7 +605,7 @@ class Ndrive(object):
 
             >>> file_link = nd.getFileLink('/Picture/flower.png')
         
-        :params full_path: The full path of file to get file link. Path should start and  end with '/'.
+        :param full_path: The full path of file to get file link. Path should start and  end with '/'.
 
         :return: ``Shared url`` or ``False`` if failed to share a file or directory through url
         """
@@ -767,7 +767,7 @@ class Ndrive(object):
     def getMusicAlbumList(self, tagtype = 0, startnum = 0, pagingrow = 100, dummy = 51467):
         """Get music album list.
 
-        :param tagtype: ???
+        :param tagtype: ?
 
         :return: ``metadata`` or ``False``
 
