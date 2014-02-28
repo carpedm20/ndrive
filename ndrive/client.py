@@ -435,24 +435,21 @@ class Ndrive(object):
             >>> nd_list = nd.getList('/', type=3)
             >>> print nd_list
 
-        There are 5 kinds of ``type``::
+        There are 5 kinds of ``type``:
+            - 1 => only directories with idxfolder property
+            - 2 => only files
+            - 3 => directories and files with thumbnail info (like viewHeight, viewWidth for Image file)
+            - 4 => only directories except idxfolder
+            - 5 => directories and files without thumbnail info
 
-            1 => only directories with idxfolder property
-            2 => only files
-            3 => directories and files with thumbnail info
-            ex) viewHeight, viewWidth for Image file
-            4 => only directories except idxfolder
-            5 => directories and files without thumbnail info
+        There are 5 kindes of ``sort``:
+            - file : file type, 종류
+            - length : size of file, 크기
+            - date : edited date, 수정한 날짜
+            - credate : creation date, 올린 날짜
+            - protect : protect or not, 중요 표시
 
-        There are 5 kindes of ``sort``::
-
-            file => file type, 종류
-            length => size of file, 크기
-            date => edited date, 수정한 날짜
-            credate => creation date, 올린 날짜
-            protect => protect or not, 중요 표시
-
-        :params full_path: The full path to get the file list.
+        :param full_path: The full path to get the file list.
 
         :param type: 1, 2, 3, 4 or 5
 
@@ -650,7 +647,7 @@ class Ndrive(object):
     def getProperty(self, full_path, dummy = 56184):
         """Get a file property
 
-        :params full_path: The full path to get the file or directory property.
+        :param full_path: The full path to get the file or directory property.
 
         :return: ``metadata`` if success or ``False`` if failed to get property
 
@@ -689,11 +686,11 @@ class Ndrive(object):
     def getVersionList(self, full_path, startnum = 0, pagingrow = 50, dummy = 54213):
         """Get a version list of a file or dierectory.
 
-        :params full_path: The full path to get the file or directory property. Path should start with '/'
-        :params startnum: Start version index.
-        :params pagingrow: Max # of version list in one page.
+        :param full_path: The full path to get the file or directory property. Path should start with '/'
+        :param startnum: Start version index.
+        :param pagingrow: Max # of version list in one page.
 
-        :returns: ``metadata`` if succcess or ``False`` 
+        :returns: ``metadata`` if succcess or ``False`` (failed to get history or there is no history)
 
         :metadata:
               - createuser
@@ -702,10 +699,6 @@ class Ndrive(object):
               - href
               - versioninfo
               - versionkey
-
-            False:
-              Failed to get property.
-              If there is no history, also return False.
         """
         data = {'orgresource': full_path,
                 'startnum': startnum,
@@ -726,7 +719,7 @@ class Ndrive(object):
     def getVersionListCount(self, full_path, dummy = 51234):
         """Get a count of version list.
 
-        :params full_path: The full path to get the file or directory property.
+        :param full_path: The full path to get the file or directory property.
 
         :returns: ``Integer`` (number of version lists) or ``False`` if failed to get a version list
         """
@@ -770,7 +763,7 @@ class Ndrive(object):
 
         :return: ``metadata`` or ``False``
 
-        :metadata: Music album list as dict format.
+        :metadata:
             - u'album':u'Greatest Hits Coldplay',
             - u'artist':u'Coldplay',
             - u'href':u'/Coldplay - Clocks.mp3',
@@ -796,13 +789,12 @@ class Ndrive(object):
     def doSearch(self, filename, filetype = None, type = 3, full_path = '/', sharedowner = 'A', datatype = 'all', sort = 'update', order = 'desc', searchtype = 'filesearch', startnum = 0, pagingrow = 100, includeworks = 'N', bodysearch = 'N', dummy = 36644):
         """Get music album list.
 
-        There are 4 kinds in ``type``":
-            1 => only directories with idxfolder property
-            2 => only files
-            3 => directories and files with thumbnail info
-            ex) viewHeight, viewWidth for Image file
-            4 => only directories except idxfolder
-            5 => directories and files without thumbnail info
+        There are 4 kinds in ``type``:
+            - 1 : only directories with idxfolder property
+            - 2 : only files
+            - 3 : directories and files with thumbnail info (like viewHeight, viewWidth for Image file)
+            - 4 : only directories except idxfolder
+            - 5 : directories and files without thumbnail info
 
         Tyere are 5 kindes of ``filetype``:
             ex) None: all, 1: document, 2:image, 3: video, 4: msuic, 5: zip
@@ -820,7 +812,7 @@ class Ndrive(object):
 
         :returns: ``metadata`` or ``False``
 
-        :metadata: List of dict
+        :metadata:
             - authtoken
             - content
             - copyright
