@@ -66,7 +66,7 @@ class Ndrive(object):
     def login(self, user_id, password, svctype = "Android NDrive App ver", auth = 0):
         """Log in Naver and get cookie
 
-            s = nd.login("YOUR_ID", "YOUR_PASSWORD")
+            >>> s = nd.login("YOUR_ID", "YOUR_PASSWORD")
 
         :param str user_id: Naver account's login id
         :param str password: Naver account's login password
@@ -227,6 +227,8 @@ class Ndrive(object):
     def uploadFile(self, file_obj, full_path, overwrite = False):
         """Upload a file as Ndrive really do.
 
+            >>> nd.uploadFile('~/flower.png','/Picture/flower.png',True)
+
         This function imitates the process when Ndrive uploads a local file to its server. The process follows 7 steps:
               1. POST /CheckStatus.ndrive
               2. POST /GetDiskSpace.ndrive
@@ -251,6 +253,8 @@ class Ndrive(object):
 
     def getDiskSpace(self):
         """Get disk space information.
+
+            >>> disk_info = nd.getDiskSpace()
 
         :return: ``metadata`` if success or ``error message``
 
@@ -282,6 +286,8 @@ class Ndrive(object):
 
     def checkUpload(self, file_obj, full_path = '/', overwrite = False):
         """Check whether it is possible to upload a file.
+
+            >>> s = nd.checkUpload('~/flower.png','/Picture/flower.png')
 
         :param file_obj: A file-like object to check whether possible to upload. You can pass a string as a file_obj or a real file object.
         :param str full_path: The full path to upload the file to, *including the file name*. If the destination directory does not yet exist, it will be created. 
@@ -596,6 +602,8 @@ class Ndrive(object):
 
     def getFileLink(self, full_path):
         """Get a link of file
+
+            >>> file_link = nd.getFileLink('/Picture/flower.png')
         
         :params full_path: The full path of file to get file link. Path should start and  end with '/'.
 
