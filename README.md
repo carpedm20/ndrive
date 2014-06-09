@@ -17,6 +17,10 @@ Installation
 ---------------
 To install ndrive, simply:
 
+    $ apt-get install python-dev
+    $ apt-get install python-nss
+    $ apt-get install libnspr4-dev    
+
     $ pip install ndrive
 
 Or, you can use:
