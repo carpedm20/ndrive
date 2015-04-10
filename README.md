@@ -3,7 +3,7 @@
 [![PyPi version](https://pypip.in/v/ndrive/badge.png)](https://crate.io/packages/ndrive/)
 [![PyPi downloads](https://pypip.in/d/ndrive/badge.png)](https://crate.io/packages/ndrive/)
 
-ndrive is a python wrapper for Naver Ndrive
+ndrive is a python wrapper for NAVER Ndrive ([http://ndrive.naver.com](http://ndrive.naver.com)).
 
 Below is the sample code to use ndrive module in python
 
