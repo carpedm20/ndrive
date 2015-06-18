@@ -49,6 +49,6 @@ To-do
 Copyright
 ---------
 
-Copyright © 2014 Kim Tae Hoon.
+Copyright © 2015 Kim Tae Hoon.
 
 The MIT License (MIT)

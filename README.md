@@ -1,8 +1,5 @@
 ![alt tag](http://1.bp.blogspot.com/-4YYXRULcA6E/UwsBlXow3FI/AAAAAAAACSM/k2MC9klWoI8/s1600/ndrive.png)
 
-[![PyPi version](https://pypip.in/v/ndrive/badge.png)](https://crate.io/packages/ndrive/)
-[![PyPi downloads](https://pypip.in/d/ndrive/badge.png)](https://crate.io/packages/ndrive/)
-
 ndrive is a python wrapper for NAVER Ndrive ([http://ndrive.naver.com](http://ndrive.naver.com)).
 
 Below is the sample code to use ndrive module in python
@@ -55,6 +52,6 @@ To-do
 Copyright
 ---------
 
-Copyright © 2014 Kim Tae Hoon.
+Copyright © 2015 Kim Tae Hoon.
 
 The MIT License (MIT)
