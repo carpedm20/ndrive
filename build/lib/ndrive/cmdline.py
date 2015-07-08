@@ -14,6 +14,7 @@ import pprint
 import shlex
 import getpass
 from clint.textui import colored
+
 from ndrive import Ndrive
 
 class NdriveTerm(cmd.Cmd):
@@ -23,7 +24,6 @@ class NdriveTerm(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self.n = Ndrive()
 
-        print 'id'
         self.id = id
         self.passwd = passwd
         s = self.n.login(id, passwd)

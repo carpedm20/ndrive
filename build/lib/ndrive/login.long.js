@@ -8,26 +8,6 @@ function getLenChar(a) {
     a = a + "";
     return String.fromCharCode(a.length)
 }
-function keyParse_Rev() {
-    if (!keystr) {
-		return false
-    }
-
-	keys = keystr.split(";");
-	key1 = keys[0].split("\'");
-	sessionkey = key1[1]
-
-	key2 = keys[1].split("\'");
-	keyname = key2[1];
-
-	key3 = keys[2].split("\'");
-	evalue = key3[1];
-
-	key4 = keys[3].split("\'");
-	nvalue = key4[1];
-
-	return true
-}
 function keySplit() {
     if (!keystr) {
         return false
