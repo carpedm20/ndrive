@@ -19,6 +19,6 @@ setup(
         'python-magic',
         'clint',
         'simplejson',
-        'python-spidermonkey',
+        'Ghost.py'
     ]
 )
