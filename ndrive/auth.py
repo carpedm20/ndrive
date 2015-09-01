@@ -46,7 +46,7 @@ def getCookie(id, password):
 
 
     response = session.post('https://nid.naver.com/nidlogin.login', params=params, headers=headers)
-    data = response.read()
+    data = response.text
 
 
     headers = {'Accept':'text/plain'}
@@ -59,3 +59,4 @@ def getCookie(id, password):
 
     session.get(url,headers=headers)
     return session.cookies.get_dict()
+
