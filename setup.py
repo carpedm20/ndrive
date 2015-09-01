@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='ndrive',
@@ -19,6 +19,6 @@ setup(
         'python-magic',
         'clint',
         'simplejson',
-        'python-spidermonkey',
+        'pyjsbn-rsa',
     ]
 )
