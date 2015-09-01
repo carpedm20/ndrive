@@ -2,7 +2,7 @@
 
 import os
 import requests
-import urllib, base64, rsa, httplib, re
+import urllib, re
 from jsbn import RSAKey
 
 
