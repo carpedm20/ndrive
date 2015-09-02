@@ -3,10 +3,10 @@ setup.cfg
 setup.py
 ndrive/__init__.py
 ndrive/auth.py
-ndrive/backup.models.py
 ndrive/client.py
 ndrive/cmdline.py
 ndrive/file.py
 ndrive/login.long.js
+ndrive/models.py
 ndrive/urls.py
 ndrive/utils.py
