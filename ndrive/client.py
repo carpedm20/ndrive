@@ -304,7 +304,7 @@ class Ndrive(object):
         now = datetime.datetime.now().isoformat()
 
         data = {'uploadsize': file_size,
-                'overwrite': overwrite if 'T' else 'F',
+                'overwrite': 'T' if overwrite else 'F',
                 'getlastmodified': now,
                 'dstresource': full_path,
                 'userid': self.user_id,
