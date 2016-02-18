@@ -6,37 +6,31 @@ spidermokey is used to log in Naver by using JavaScript.
 """
 
 import os
+import re
 import requests
-import urllib, base64, rsa, httplib, re
-import spidermonkey
+import rsa
+
+
+def nidStringJoin(l):
+    return ''.join([chr(len(s)) + s for s in l])
+
+
+def encrypt(keystring, uid, upw):
+    sessionkey, keyname, e_str, n_str = keystring.split(',')
+    e, n = int(e_str, 16), int(n_str, 16)
+
+    message = nidStringJoin([sessionkey, uid, upw])
+
+    pubkey = rsa.PublicKey(e, n)
+    encrypted = rsa.encrypt(message, pubkey)
+
+    return keyname, encrypted.encode('hex')
 
 
 def getCookie(id, password):
-    f = urllib.urlopen('http://static.nid.naver.com/enclogin/keys.nhn')
-    keystring = f.read()
-    f.close()
+    keystring = requests.get('http://static.nid.naver.com/enclogin/keys.nhn').content
 
-    # login JavaScript from 'https://nid.naver.com/login/js/login.long.js'
-    js_path = os.path.join(os.path.dirname(__file__), 'login.long.js')
-    f = file(js_path, 'r')
-    js = f.read()
-    f.close()
-
-    rt = spidermonkey.Runtime()
-    cx = rt.new_context()
-    cx.execute(js)
-    cx.execute('''
-        keystr = '%s';
-        rsa = new RSAKey();
-        keySplit();
-        rsa.setPublic(evalue, nvalue);
-        uid = '%s';
-        upw = '%s';
-        encrypted = rsa.encrypt(getLenChar(sessionkey)+sessionkey\
-                    +getLenChar(uid)+uid+getLenChar(upw)+upw);
-        ''' % (keystring, id, password))
-
-    keyname, encpw = str(cx.execute('keyname')), str(cx.execute('encrypted'))
+    keyname, encpw = encrypt(keystring, id, password)
 
     params = dict(enctp='1',
                   encnm=keyname,
