@@ -22,6 +22,11 @@ Copyright
 
 Copyright 2014 Kim Tae Hoon
 
+
+Contributor
+===========
+Sukbeom Kim(chaoxifer@gmail.com)
+
 """
 
 import os, sys
@@ -32,8 +37,11 @@ import simplejson as json
 import magic
 import datetime
 import re
+import Cookie 
+import cookielib 
+import pdb
+from ghost import Ghost
 
-from .auth import getCookie
 from .urls import ndrive_urls as nurls
 from .utils import byte_readable
 
@@ -63,6 +71,42 @@ class Ndrive(object):
         self.session.cookies.set('NID_AUT', NID_AUT)
         self.session.cookies.set('NID_SES', NID_SES)
 
+
+    """
+    getCookie()
+        By using Ghost python module, login to page and get cookies directly.
+    """
+    def getCookie(self):
+        self.ghost = Ghost(display = False, wait_timeout = 10)
+        self.currentPage = None
+        self.login_try()
+        cookie = {}
+        for idx, val in enumerate(self.ghost.cookies):
+            key = str(val.name())
+            value = str(val.value())
+            cookie[key] = value
+        return cookie
+
+    def openPage(self, url):
+        if self.currentPage == url:
+            return
+        self.ghost.open(url)
+        self.ghost.wait_for_page_loaded()
+        self.currentPage = url
+
+    def login_try(self):
+        self.openPage('https://nid.naver.com/nidlogin.login?svctype=262144&url=http://m.naver.com/')
+
+        self.ghost.evaluate("""
+            (function() {        
+            document.getElementById('id').value = '%s';
+            document.getElementById('pw').value = '%s';
+            document.getElementsByClassName('int_jogin')[0].click();
+            })();
+            """ % (self.user_id, self.password), expect_loading = True)
+
+        self.ghost.wait_for_selector('#query')
+
     def login(self, user_id, password, svctype = "Android NDrive App ver", auth = 0):
         """Log in Naver and get cookie
 
@@ -75,15 +119,16 @@ class Ndrive(object):
 
         :return: ``True`` when success to login or ``False``
         """
+
         self.user_id = user_id
         self.password = password
 
         if self.user_id == None or self.password == None:
             print "[*] Error __init__: user_id and password is needed"
             return False
-
+        
         try:
-            cookie = getCookie(user_id, password)
+            cookie = self.getCookie()
         except:
             print "[*] Error getCookie: failed"
             return False
